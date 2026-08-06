@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Income Estimator Calculator | GreatLife Worldwide</title>
+<meta name="description" content="See day by day what it takes to hit your GreatLife income goal — built for sponsors and prospects to run together.">
+<style>
+  :root {
+    --navy-900: #16233d;
+    --navy-800: #1f3357;
+    --navy-700: #2c4676;
+    --paper: #f6f4ef;
+    --paper-dim: #ece8de;
+    --brass: #b6862c;
+    --brass-light: #d9ab4e;
+    --ink: #23282f;
+    --ink-dim: #5c6570;
+    --line: #d8d2c2;
+    --good: #3a6b4c;
+    --good-light: #e7efe9;
+    --warn: #a2432b;
+    --warn-light: #f6e9e4;
+    --radius: 8px;
+    --font-display: "Roboto Slab", Georgia, serif;
+    --font-body: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --font-num: "Roboto Slab", Georgia, serif;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.55;
+  }
+
+  h1, h2, h3 { font-family: var(--font-display); color: var(--navy-900); margin: 0 0 0.4em; font-weight: 700; }
+
+  a { color: var(--navy-700); }
+
+  /* ---- Hero ---- */
+  .hero {
+    background: linear-gradient(160deg, var(--navy-900) 0%, var(--navy-800) 55%, var(--navy-700) 100%);
+    color: var(--paper);
+    padding: 48px 24px 56px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      90deg, rgba(214,177,109,0.05) 0, rgba(214,177,109,0.05) 1px,
+      transparent 1px, transparent 48px
+    );
+    pointer-events: none;
+  }
+  .hero .eyebrow {
+    font-size: 0.78rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--brass-light);
+    margin-bottom: 10px;
+    font-weight: 600;
+  }
+  .hero h1 {
+    color: #fff;
+    font-size: clamp(1.9rem, 4.5vw, 2.9rem);
+    margin-bottom: 12px;
+    letter-spacing: -0.01em;
+  }
+  .hero p {
+    max-width: 560px;
+    margin: 0 auto;
+    color: #d7ddea;
+    font-size: 1.05rem;
+  }
+
+  /* ---- Shell ---- */
+  .page { max-width: 760px; margin: 0 auto; padding: 0 20px 80px; }
+
+  .card {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 28px 26px;
+    margin-top: -32px;
+    position: relative;
+    z-index: 2;
+    box-shadow: 0 12px 32px -18px rgba(22,35,61,0.35);
+  }
+
+  .card h2 {
+    font-size: 1.3rem;
+    border-bottom: 2px solid var(--paper-dim);
+    padding-bottom: 12px;
+    margin-bottom: 20px;
+  }
+
+  .field-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px 20px;
+  }
+  @media (max-width: 560px) { .field-grid { grid-template-columns: 1fr; } }
+
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field.span-2 { grid-column: 1 / -1; }
+
+  .field label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--navy-800);
+  }
+  .field .hint {
+    font-size: 0.76rem;
+    color: var(--ink-dim);
+    font-weight: 400;
+  }
+
+  input[type="number"], input[type="date"], select {
+    font-family: var(--font-body);
+    font-size: 1rem;
+    padding: 10px 12px;
+    border: 1.5px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--paper);
+    color: var(--ink);
+  }
+  input:focus, select:focus {
+    outline: 3px solid rgba(182,134,44,0.35);
+    outline-offset: 1px;
+    border-color: var(--brass);
+  }
+
+  .btn-row { display: flex; gap: 12px; margin-top: 26px; flex-wrap: wrap; }
+
+  .btn {
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 1rem;
+    padding: 13px 24px;
+    border-radius: var(--radius);
+    border: none;
+    cursor: pointer;
+  }
+  .btn-primary { background: var(--brass); color: #fff; }
+  .btn-primary:hover { background: var(--brass-light); }
+  .btn-secondary { background: transparent; color: var(--navy-800); border: 1.5px solid var(--line); }
+  .btn-secondary:hover { border-color: var(--navy-700); }
+
+  .goal-chip {
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 0.9rem;
+    padding: 7px 14px;
+    border-radius: 999px;
+    border: 1.5px solid var(--line);
+    background: var(--paper);
+    color: var(--navy-800);
+    cursor: pointer;
+  }
+  .goal-chip:hover { border-color: var(--brass); }
+  .goal-chip.active { background: var(--brass); border-color: var(--brass); color: #fff; }
+
+  /* ---- Results ---- */
+  #results { display: none; margin-top: 28px; }
+  #results.reached .result-banner { background: var(--good-light); border-color: var(--good); }
+  #results.not-reached .result-banner { background: var(--warn-light); border-color: var(--warn); }
+
+  .result-banner {
+    border: 1.5px solid var(--line);
+    border-radius: var(--radius);
+    padding: 22px 24px;
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  .result-banner .headline {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    color: var(--navy-900);
+    margin-bottom: 4px;
+  }
+  .result-banner .sub { color: var(--ink-dim); font-size: 0.92rem; }
+
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+  @media (max-width: 560px) { .stat-grid { grid-template-columns: 1fr 1fr; } }
+
+  .stat {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 14px 12px;
+    text-align: center;
+  }
+  .stat .num {
+    font-family: var(--font-num);
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--navy-900);
+    display: block;
+  }
+  .stat .lbl {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--ink-dim);
+  }
+
+  .breakdown { border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; margin-bottom: 20px; }
+  .breakdown-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 12px 16px; border-bottom: 1px solid var(--line); font-size: 0.95rem;
+  }
+  .breakdown-row:last-child { border-bottom: none; background: var(--paper-dim); font-weight: 700; }
+  .breakdown-row .amt { font-family: var(--font-num); font-weight: 700; color: var(--navy-800); }
+  .breakdown-row:last-child .amt { color: var(--navy-900); font-size: 1.05rem; }
+
+  .adjust-box {
+    background: var(--warn-light);
+    border: 1px solid var(--warn);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    font-size: 0.92rem;
+    margin-bottom: 20px;
+  }
+  .adjust-box h3 { font-size: 0.95rem; color: var(--warn); margin-bottom: 8px; }
+  .adjust-box ul { margin: 0; padding-left: 20px; }
+  .adjust-box li { margin-bottom: 4px; }
+
+  .disclaimer {
+    font-size: 0.78rem;
+    color: var(--ink-dim);
+    border-top: 1px solid var(--line);
+    padding-top: 16px;
+    margin-top: 8px;
+  }
+
+  footer.site {
+    text-align: center;
+    padding: 30px 20px 50px;
+    color: var(--ink-dim);
+    font-size: 0.82rem;
+  }
+
+  /* ---- Simulation ticker (signature moment) ---- */
+  #ticker {
+    display: none;
+    text-align: center;
+    padding: 30px 10px;
+  }
+  #ticker .day-count {
+    font-family: var(--font-num);
+    font-size: 2.6rem;
+    font-weight: 700;
+    color: var(--navy-900);
+  }
+  #ticker .day-lbl { font-size: 0.85rem; color: var(--ink-dim); text-transform: uppercase; letter-spacing: 0.08em; }
+  #ticker .mini-stats { display: flex; justify-content: center; gap: 26px; margin-top: 14px; font-size: 0.88rem; color: var(--ink-dim); }
+  #ticker .mini-stats b { color: var(--navy-800); font-family: var(--font-num); }
+
+  @media (prefers-reduced-motion: reduce) {
+    #ticker { display: none !important; }
+  }
+
+  /* ---- Print ---- */
+  @media print {
+    .hero::after { display: none; }
+    .no-print { display: none !important; }
+    body { background: #fff; }
+    .card { box-shadow: none; border: none; margin-top: 0; }
+    #results { display: block !important; }
+    #ticker { display: none !important; }
+    #goalForm { display: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="eyebrow">GreatLife Worldwide</div>
+  <h1>Income Estimator Calculator</h1>
+  <p>Enter your goal and your daily activity. This tool runs it forward, day by day, and shows you exactly what it takes to get there.</p>
+</div>
+
+<div class="page">
+  <div class="card no-print">
+    <h2>Your Goal</h2>
+    <form id="goalForm">
+      <div class="field-grid">
+        <div class="field">
+          <label for="goalDollars">Weekly Income Goal ($)</label>
+          <div class="goal-chip-row" id="goalChipRow" style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:8px;">
+          </div>
+          <input type="number" id="goalDollars" min="1" step="1" value="500" required>
+          <span class="hint">Tap a common amount above, or type any exact figure.</span>
+          <span class="hint">Total dollars you'd like to reach — cumulative, including Fast Start Bonuses.</span>
+        </div>
+        <div class="field">
+          <label for="goalDate">Target Date for This Goal</label>
+          <input type="date" id="goalDate">
+          <span class="hint">The date you're hoping to hit it by. We'll compare this to what the numbers show.</span>
+        </div>
+        <div class="field">
+          <label for="daysPerWeek"># Days You'll Work Per Week</label>
+          <input type="number" id="daysPerWeek" min="1" max="7" step="1" value="5" required>
+        </div>
+        <div class="field">
+          <label for="hoursPerDay"># Hours You'll Work Per Day</label>
+          <input type="number" id="hoursPerDay" min="0.5" step="0.5" value="2" required>
+        </div>
+        <div class="field">
+          <label for="callsPerDay"># Calls / Contacts Per Day</label>
+          <input type="number" id="callsPerDay" min="0" step="1" value="20">
+          <span class="hint">Your daily outreach pace — shown alongside your results.</span>
+        </div>
+        <div class="field">
+          <label for="newRepsPerDay"># New Reps Enrolled Per Day</label>
+          <input type="number" id="newRepsPerDay" min="0" step="1" value="1" required>
+        </div>
+        <div class="field">
+          <label for="productsOnSignup">Products Per Enrollment Order</label>
+          <select id="productsOnSignup">
+            <option value="1">1 product — 45 CV (Silver order)</option>
+            <option value="2">2 products — 90 CV (Gold order)</option>
+            <option value="3" selected>3 products — 135 CV (Platinum order)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="productsOnAutoship">Products On Monthly Autoship</label>
+          <select id="productsOnAutoship">
+            <option value="1">1 product — 45 CV (Silver)</option>
+            <option value="2">2 products — 90 CV (Gold)</option>
+            <option value="3" selected>3 products — 135 CV (Platinum)</option>
+          </select>
+          <span class="hint">Assumed the same across your whole team, for this projection.</span>
+        </div>
+      </div>
+
+      <div class="field" style="margin-top:18px;">
+        <label>Calculation Method</label>
+        <div class="method-row" style="display:flex; gap:18px; flex-wrap:wrap; margin-top:6px;">
+          <label style="display:flex; align-items:center; gap:6px; font-weight:400;">
+            <input type="radio" name="calcMethod" id="methodFull" value="full" checked>
+            Full Follow Sponsor (everyone duplicates your pace)
+          </label>
+          <label style="display:flex; align-items:center; gap:6px; font-weight:400;">
+            <input type="radio" name="calcMethod" id="methodPct" value="pct">
+            Percentage Follow Sponsor (realistic mix)
+          </label>
+        </div>
+        <span class="hint">Full Follow assumes every recruit works the exact pace you enter above, forever. Percentage Follow models the real-world mix — only a portion of new reps actually build; the rest join mainly for product.</span>
+      </div>
+
+      <div class="field-grid" id="pctFields" style="display:none; margin-top:10px;">
+        <div class="field">
+          <label for="followPct">% of New Reps Who Follow Your Example</label>
+          <input type="number" id="followPct" min="0" max="100" step="1" value="75">
+          <span class="hint">This % duplicates your full activity pattern (days/week, reps/day, products). The rest just enroll.</span>
+        </div>
+        <div class="field">
+          <label for="nonFollowerAutoshipPct">% of Non-Followers Who Add Autoship</label>
+          <input type="number" id="nonFollowerAutoshipPct" min="0" max="100" step="1" value="22">
+          <span class="hint">Of the reps who don't build, this % stay on 1 product autoship for personal/family use. Non-followers always enroll with the minimum 1 product — never your full order size.</span>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button type="submit" class="btn btn-primary">Run the Numbers</button>
+        <button type="button" class="btn btn-secondary" id="clearBtn">Clear</button>
+      </div>
+    </form>
+  </div>
+
+  <div id="ticker" aria-live="polite">
+    <div class="day-lbl">Simulating day by day…</div>
+    <div class="day-count" id="tickDay">1</div>
+    <div class="mini-stats">
+      <span>Personal reps: <b id="tickReps">0</b></span>
+      <span>Team: <b id="tickTeam">0</b></span>
+      <span>Earned: <b id="tickTotal">$0</b></span>
+    </div>
+  </div>
+
+  <div id="results">
+    <div class="result-banner">
+      <div class="headline" id="resultHeadline"></div>
+      <div class="sub" id="resultSub"></div>
+      <div class="sub" id="methodNote" style="display:none; margin-top:6px; font-style:italic;"></div>
+    </div>
+
+    <div class="stat-grid">
+      <div class="stat"><span class="num" id="statReps">0</span><span class="lbl">Personal Reps</span></div>
+      <div class="stat"><span class="num" id="statTeam">0</span><span class="lbl">Total Team</span></div>
+      <div class="stat"><span class="num" id="statVolume">0</span><span class="lbl">Team Volume (CV)</span></div>
+    </div>
+
+    <div class="breakdown" id="yourRankBox" style="margin-top:-8px;">
+      <div class="breakdown-row" style="background:var(--paper-dim); font-weight:700;">
+        <span>Your Rank</span><span></span>
+      </div>
+      <div class="breakdown-row"><span id="yourRankLine"></span></div>
+    </div>
+
+    <div class="breakdown" id="breakdown"></div>
+
+    <div class="breakdown" id="runRateBox" style="display:none; margin-top:-8px;">
+      <div class="breakdown-row" style="background:var(--paper-dim); font-weight:700;">
+        <span id="runRateHeader">Projected Monthly Earnings</span><span></span>
+      </div>
+      <div id="runRateContent"></div>
+    </div>
+
+    <div class="breakdown" id="platinumBox" style="display:none; margin-top:-8px;">
+      <div class="breakdown-row" style="background:var(--paper-dim); font-weight:700;">
+        <span>Leadership Pipeline (Your Downline)</span><span></span>
+      </div>
+      <div class="breakdown-row"><span>Personally-Enrolled Reps Now Platinum-Qualified</span><span class="amt" id="platinumCount">0</span></div>
+      <div class="breakdown-row"><span id="diamondLine"></span></div>
+      <div class="breakdown-row"><span id="intlDiamondLine"></span></div>
+    </div>
+
+    <div class="adjust-box no-print" id="adjustBox" style="display:none;">
+      <h3>Not there yet within 12 months — what to adjust</h3>
+      <ul id="adjustList"></ul>
+    </div>
+
+    <div class="btn-row no-print">
+      <button type="button" class="btn btn-secondary" id="printBtn">Print / Save Results</button>
+    </div>
+
+    <div class="disclaimer">
+      <strong>This is a projection tool, not an income guarantee.</strong> "Full Follow Sponsor" models a "Do The Same Thing" (DTST) scenario where every team member follows the same activity pattern you enter above. "Percentage Follow Sponsor" models a more realistic mix, where only a portion of new reps actively build and the rest join mainly for product at distributor pricing. Either way, real teams vary widely based on individual effort. Matrix Pay is estimated conservatively from your own downline growth only, using a team-wide average order size, since real matrix placement also includes spillover from upline sponsors that can't be predicted in advance. No income claims or guarantees are made or implied. Please refer to the official GreatLife Compensation Plan for complete details.
+    </div>
+  </div>
+</div>
+
+<footer class="site no-print">
+  Income Estimator Calculator — an independent tool built for GreatLife Worldwide distributors and their prospects.
+</footer>
+
+<script>
+// ============================================================
+// Simulation engine
+// ============================================================
+function isWorkingDay(t, daysPerWeek) { return (t % 7) < daysPerWeek; }
+
+// Generalized growth engine. followFrac = 1 (100%) reproduces the original
+// "Full Follow Sponsor" duplication model exactly. followFrac < 1 models a
+// realistic mix: only that fraction of each new cohort goes on to actively
+// recruit at the Runner's pace; the rest just enroll (and a sub-fraction of
+// THOSE add one personal-use autoship product).
+//
+//   P(t)  = total subtree headcount (everyone, builders and non-builders)
+//   F(t)  = "active recruiter" headcount driving future growth
+//   EV(t) = cumulative enrollment-order product volume (for Fast Start / Coded Bonus)
+//   AV(t) = cumulative standing autoship product volume (for recurring Coded Bonus,
+//           Matrix Pay, and Lifestyle GPV)
+function buildCurves(maxT, daysPerWeek, newRepsPerDay, followFrac, nonFollowerAutoshipFrac, productsOnSignup, productsOnAutoship) {
+  const P = new Array(maxT + 1).fill(0);
+  const F = new Array(maxT + 1).fill(0);
+  const EV = new Array(maxT + 1).fill(0);
+  const AV = new Array(maxT + 1).fill(0);
+
+  // Expected product volume contributed by ONE new enrollee, blended across
+  // followers (buy the Runner's full order size) and non-followers (buy the
+  // minimum 1 product — never the Runner's full order, regardless of what
+  // the Runner selected above).
+  const evPerUnit = followFrac * productsOnSignup + (1 - followFrac) * 1;
+  const avPerUnit = followFrac * productsOnAutoship + (1 - followFrac) * nonFollowerAutoshipFrac * 1;
+
+  P[0] = 1;
+  F[0] = followFrac;
+  EV[0] = evPerUnit;
+  AV[0] = avPerUnit;
+
+  for (let t = 1; t <= maxT; t++) {
+    const newRaw = isWorkingDay(t, daysPerWeek) ? F[t - 1] * newRepsPerDay : 0;
+    P[t] = P[t - 1] + newRaw;
+    F[t] = F[t - 1] + newRaw * followFrac;
+    EV[t] = EV[t - 1] + newRaw * evPerUnit;
+    AV[t] = AV[t - 1] + newRaw * avPerUnit;
+  }
+  return { P, F, EV, AV };
+}
+
+// Q(t) = a person's OWN direct personal-enrollment count, t days after THEY joined
+// (linear, not compounding — used to check an individual's own rank qualification,
+// as opposed to P(t) which tracks their whole downline subtree).
+function buildPersonalRecruitCurve(maxT, daysPerWeek, newRepsPerDay) {
+  const Q = new Array(maxT + 1).fill(0);
+  Q[0] = isWorkingDay(0, daysPerWeek) ? newRepsPerDay : 0;
+  for (let t = 1; t <= maxT; t++) {
+    Q[t] = Q[t - 1] + (isWorkingDay(t, daysPerWeek) ? newRepsPerDay : 0);
+  }
+  return Q;
+}
+
+// Of the Runner's own personally-enrolled reps, how many have themselves become
+// Platinum-qualified (135 CV personal + 5+ of their OWN active personal reps)
+// as of the given day? This is the Diamond / International Diamond pipeline metric.
+function countPlatinumQualifiedPersonals(day, legCohorts, Q, productsOnAutoship, followFrac = 1) {
+  if (productsOnAutoship < 3) return 0;
+  const raw = legCohorts.reduce((sum, leg) => {
+    if (leg.day > day) return sum;
+    const ownPersonalCount = Q[day - leg.day];
+    return ownPersonalCount >= 5 ? sum + leg.count : sum;
+  }, 0);
+  // Only reps who actually follow the sponsor's example are plausibly
+  // building deep enough to reach Platinum leadership status themselves.
+  return raw * followFrac;
+}
+
+function classifyOrdinal(ordinal) {
+  if (ordinal <= 2) return { tier: null, rate: 0 };
+  if (ordinal <= 4) return { tier: 'Silver', rate: 2 };
+  if (ordinal <= 8) return { tier: 'Gold', rate: 4 };
+  return { tier: 'Platinum', rate: 6 };
+}
+
+function matrixRank(productsOnAutoship, activePersonalReps) {
+  if (productsOnAutoship >= 3 && activePersonalReps >= 5) return { rank: 'Platinum', levels: 14, rate: 4 };
+  if (productsOnAutoship >= 2 && activePersonalReps >= 2) return { rank: 'Gold', levels: 10, rate: 2 };
+  if (productsOnAutoship >= 1) return { rank: 'Silver', levels: 7, rate: 1 };
+  return { rank: null, levels: 0, rate: 0 };
+}
+
+function simulate({ goalDollars, daysPerWeek, newRepsPerDay, productsOnSignup, productsOnAutoship, followFrac = 1, nonFollowerAutoshipFrac = 0, capDays = 365 }) {
+  const { P, F, EV, AV } = buildCurves(capDays, daysPerWeek, newRepsPerDay, followFrac, nonFollowerAutoshipFrac, productsOnSignup, productsOnAutoship);
+  const Q = buildPersonalRecruitCurve(capDays, daysPerWeek, newRepsPerDay);
+  const legCohorts = [];
+  let ordinalCounter = 0;
+  let cumulativeTotal = 0, fastStartTotal = 0, codedBonusTotal = 0, matrixTotal = 0, lifestyleTotal = 0;
+  const history = [];
+
+  // Blended per-new-enrollee product volume, matching buildCurves' EV[0]/AV[0].
+  const evPerUnit = followFrac * productsOnSignup + (1 - followFrac) * 1;
+
+  const teamSizeAt = (day) =>
+    legCohorts.reduce((sum, leg) => (leg.day <= day ? sum + leg.count * P[day - leg.day] : sum), 0);
+  const teamAutoshipVolAt = (day) =>
+    legCohorts.reduce((sum, leg) => (leg.day <= day ? sum + leg.count * AV[day - leg.day] : sum), 0);
+
+  for (let day = 0; day <= capDays; day++) {
+    if (isWorkingDay(day, daysPerWeek)) {
+      const countToday = newRepsPerDay;
+      // Fast Start Bonus pays on what each direct recruit actually orders at
+      // enrollment — followers order the Runner's full pattern, non-followers
+      // order the minimum 1 product.
+      fastStartTotal += countToday * evPerUnit * 20;
+      cumulativeTotal += countToday * evPerUnit * 20;
+
+      let remaining = countToday;
+      let pos = ordinalCounter + 1;
+      while (remaining > 0) {
+        const { tier, rate } = classifyOrdinal(pos);
+        let blockEnd;
+        if (pos <= 2) blockEnd = 2;
+        else if (pos <= 4) blockEnd = 4;
+        else if (pos <= 8) blockEnd = 8;
+        else blockEnd = pos + remaining;
+        const nInBlock = Math.min(remaining, blockEnd - pos + 1);
+        legCohorts.push({ day, count: nInBlock, tier, rate });
+        pos += nInBlock;
+        remaining -= nInBlock;
+      }
+      ordinalCounter += countToday;
+    }
+
+    for (const leg of legCohorts) {
+      if (leg.rate === 0 || leg.day > day) continue;
+      const t = day - leg.day;
+      const marginalVol = t === 0 ? EV[0] : EV[t] - EV[t - 1];
+      const cb = leg.count * marginalVol * leg.rate;
+      codedBonusTotal += cb;
+      cumulativeTotal += cb;
+    }
+
+    if (day > 0 && day % 30 === 0) {
+      const activePersonalReps = ordinalCounter;
+
+      for (const leg of legCohorts) {
+        if (leg.rate === 0 || leg.day > day) continue;
+        const legAutoshipVol = leg.count * AV[day - leg.day];
+        const cb = legAutoshipVol * leg.rate;
+        codedBonusTotal += cb;
+        cumulativeTotal += cb;
+      }
+
+      const { levels, rate: matrixRate } = matrixRank(productsOnAutoship, activePersonalReps);
+      const totalTeam = teamSizeAt(day);
+      const totalAutoshipVol = teamAutoshipVolAt(day);
+      const avgProductsPerMember = totalTeam > 0 ? totalAutoshipVol / totalTeam : 0;
+      if (levels > 0) {
+        const maxPositions = Math.pow(2, levels + 1) - 2;
+        const filled = Math.min(totalTeam, maxPositions);
+        const mp = filled * avgProductsPerMember * matrixRate;
+        matrixTotal += mp;
+        cumulativeTotal += mp;
+      }
+
+      const totalGpv = totalAutoshipVol * 45;
+      const tiers = [
+        [1000000, 15000], [750000, 10000], [400000, 6000], [200000, 3000], [100000, 1500],
+        [40000, 1000], [20000, 600], [10000, 400], [5000, 300], [2500, 200],
+      ];
+      let lb = 0;
+      for (const [threshold, bonus] of tiers) { if (totalGpv >= threshold) { lb = bonus; break; } }
+      if (productsOnAutoship >= 3 && activePersonalReps >= 9) {
+        lifestyleTotal += lb;
+        cumulativeTotal += lb;
+      }
+    }
+
+    if (day % 1 === 0) {
+      history.push({ day, reps: ordinalCounter, team: teamSizeAt(day), total: cumulativeTotal });
+    }
+
+    if (cumulativeTotal >= goalDollars) {
+      const snapshot = monthlySnapshot(day, legCohorts, AV, teamSizeAt, teamAutoshipVolAt, productsOnAutoship, ordinalCounter);
+      return {
+        reached: true, days: day, personalReps: ordinalCounter, teamMembers: teamSizeAt(day),
+        teamAutoshipVolume: teamAutoshipVolAt(day),
+        cumulativeTotal, fastStart: fastStartTotal, codedBonus: codedBonusTotal,
+        matrix: matrixTotal, lifestyle: lifestyleTotal, history,
+        runRateMatrix: snapshot.matrixPay, runRateLifestyle: snapshot.lifestyleBonus,
+        monthlyCyclesCompleted: Math.floor(day / 30),
+        platinumQualifiedPersonals: countPlatinumQualifiedPersonals(day, legCohorts, Q, productsOnAutoship, followFrac),
+      };
+    }
+  }
+
+  const snapshot = monthlySnapshot(capDays, legCohorts, AV, teamSizeAt, teamAutoshipVolAt, productsOnAutoship, ordinalCounter);
+  return {
+    reached: false, days: capDays, personalReps: ordinalCounter, teamMembers: teamSizeAt(capDays),
+    teamAutoshipVolume: teamAutoshipVolAt(capDays),
+    cumulativeTotal, fastStart: fastStartTotal, codedBonus: codedBonusTotal,
+    matrix: matrixTotal, lifestyle: lifestyleTotal, history,
+    runRateMatrix: snapshot.matrixPay, runRateLifestyle: snapshot.lifestyleBonus,
+    monthlyCyclesCompleted: Math.floor(capDays / 30),
+    platinumQualifiedPersonals: countPlatinumQualifiedPersonals(capDays, legCohorts, Q, productsOnAutoship, followFrac),
+  };
+}
+
+// Evaluates what Matrix Pay + Lifestyle Bonus WOULD be if a monthly cycle closed
+// today, using current team size — even if a real 30-day cycle hasn't completed yet.
+// This is shown separately as a "recurring run-rate" and is NOT added into the
+// cumulative goal-tracking total, since that total reflects only bonuses actually
+// paid out on their real cadence by the stop day.
+function monthlySnapshot(day, legCohorts, AV, teamSizeAt, teamAutoshipVolAt, productsOnAutoship, activePersonalReps) {
+  const { levels, rate: matrixRate } = matrixRank(productsOnAutoship, activePersonalReps);
+  const totalTeam = teamSizeAt(day);
+  const totalAutoshipVol = teamAutoshipVolAt(day);
+  const avgProductsPerMember = totalTeam > 0 ? totalAutoshipVol / totalTeam : 0;
+  let matrixPay = 0;
+  if (levels > 0) {
+    const maxPositions = Math.pow(2, levels + 1) - 2;
+    const filled = Math.min(totalTeam, maxPositions);
+    matrixPay = filled * avgProductsPerMember * matrixRate;
+  }
+
+  const totalGpv = totalAutoshipVol * 45;
+  const tiers = [
+    [1000000, 15000], [750000, 10000], [400000, 6000], [200000, 3000], [100000, 1500],
+    [40000, 1000], [20000, 600], [10000, 400], [5000, 300], [2500, 200],
+  ];
+  let lifestyleBonus = 0;
+  for (const [threshold, bonus] of tiers) { if (totalGpv >= threshold) { lifestyleBonus = bonus; break; } }
+  if (!(productsOnAutoship >= 3 && activePersonalReps >= 9)) lifestyleBonus = 0;
+
+  return { matrixPay, lifestyleBonus };
+}
+
+// ============================================================
+// UI wiring
+// ============================================================
+const fmtMoney = (n) => '$' + Math.round(n).toLocaleString();
+const fmtNum = (n) => Math.round(n).toLocaleString();
+
+const form = document.getElementById('goalForm');
+const resultsEl = document.getElementById('results');
+const tickerEl = document.getElementById('ticker');
+const prefersReducedMotion = (typeof window.matchMedia === 'function')
+  ? window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  : false;
+
+let activeTickerInterval = null;
+
+const pctFieldsEl = document.getElementById('pctFields');
+document.querySelectorAll('input[name="calcMethod"]').forEach((el) => {
+  el.addEventListener('change', () => {
+    pctFieldsEl.style.display = document.getElementById('methodPct').checked ? 'grid' : 'none';
+  });
+});
+
+const goalInput = document.getElementById('goalDollars');
+const goalPresets = [125, 250, 350, 500, 1000, 2500, 5000];
+const goalChipRow = document.getElementById('goalChipRow');
+goalPresets.forEach((amt) => {
+  const chip = document.createElement('button');
+  chip.type = 'button';
+  chip.className = 'goal-chip';
+  chip.textContent = amt >= 5000 ? '$5,000+' : ('$' + amt.toLocaleString());
+  chip.addEventListener('click', () => {
+    goalInput.value = amt;
+    syncGoalChips();
+  });
+  goalChipRow.appendChild(chip);
+});
+function syncGoalChips() {
+  const current = parseFloat(goalInput.value);
+  goalChipRow.querySelectorAll('.goal-chip').forEach((chip, i) => {
+    chip.classList.toggle('active', current === goalPresets[i]);
+  });
+}
+goalInput.addEventListener('input', syncGoalChips);
+syncGoalChips();
+
+document.getElementById('clearBtn').addEventListener('click', () => {
+  // Stop any in-progress tick animation from a previous run
+  if (activeTickerInterval) {
+    clearInterval(activeTickerInterval);
+    activeTickerInterval = null;
+  }
+  tickerEl.style.display = 'none';
+
+  // Blank every field completely rather than reverting to the pre-filled example values
+  form.querySelectorAll('input[type="number"], input[type="date"]').forEach((el) => { el.value = ''; });
+  form.querySelectorAll('select').forEach((el) => { el.selectedIndex = 0; });
+  document.getElementById('methodFull').checked = true;
+  pctFieldsEl.style.display = 'none';
+  document.getElementById('followPct').value = '75';
+  document.getElementById('nonFollowerAutoshipPct').value = '22';
+  syncGoalChips();
+
+  // Fully clear results content, not just hide it
+  resultsEl.style.display = 'none';
+  resultsEl.classList.remove('reached', 'not-reached');
+  document.getElementById('resultHeadline').textContent = '';
+  document.getElementById('resultSub').textContent = '';
+  document.getElementById('statReps').textContent = '0';
+  document.getElementById('statTeam').textContent = '0';
+  document.getElementById('statVolume').textContent = '0';
+  document.getElementById('breakdown').innerHTML = '';
+  document.getElementById('runRateBox').style.display = 'none';
+  document.getElementById('platinumBox').style.display = 'none';
+  document.getElementById('yourRankLine').textContent = '';
+  document.getElementById('adjustBox').style.display = 'none';
+
+  document.getElementById('goalDollars').focus();
+});
+
+document.getElementById('printBtn').addEventListener('click', () => {
+  if (resultsEl.style.display === 'none' || !document.getElementById('resultHeadline').textContent) {
+    alert('Run the numbers first, then print — there are no results yet to print.');
+    return;
+  }
+  window.print();
+});
+
+form.addEventListener('submit', function (e) {
+  e.preventDefault();
+
+  const goalDollars = parseFloat(document.getElementById('goalDollars').value) || 0;
+  const goalDateVal = document.getElementById('goalDate').value;
+  const daysPerWeek = parseInt(document.getElementById('daysPerWeek').value) || 1;
+  const hoursPerDay = parseFloat(document.getElementById('hoursPerDay').value) || 0;
+  const callsPerDay = parseInt(document.getElementById('callsPerDay').value) || 0;
+  const newRepsPerDay = parseFloat(document.getElementById('newRepsPerDay').value) || 0;
+  const productsOnSignup = parseInt(document.getElementById('productsOnSignup').value);
+  const productsOnAutoship = parseInt(document.getElementById('productsOnAutoship').value);
+
+  const usePctMode = document.getElementById('methodPct').checked;
+  const followFrac = usePctMode ? Math.max(0, Math.min(100, parseFloat(document.getElementById('followPct').value) || 0)) / 100 : 1;
+  const nonFollowerAutoshipFrac = usePctMode ? Math.max(0, Math.min(100, parseFloat(document.getElementById('nonFollowerAutoshipPct').value) || 0)) / 100 : 0;
+
+  const result = simulate({ goalDollars, daysPerWeek, newRepsPerDay, productsOnSignup, productsOnAutoship, followFrac, nonFollowerAutoshipFrac, capDays: 365 });
+
+  const entryDate = new Date();
+  const hitDate = new Date(entryDate.getTime() + result.days * 86400000);
+
+  const renderResults = () => {
+    resultsEl.style.display = 'block';
+    resultsEl.classList.remove('reached', 'not-reached');
+    resultsEl.classList.add(result.reached ? 'reached' : 'not-reached');
+
+    const headlineEl = document.getElementById('resultHeadline');
+    const subEl = document.getElementById('resultSub');
+    const adjustBox = document.getElementById('adjustBox');
+    const adjustList = document.getElementById('adjustList');
+    adjustBox.style.display = 'none';
+
+    if (result.reached) {
+      headlineEl.textContent = `Goal reached in ${result.days} day${result.days === 1 ? '' : 's'}`;
+      let sub = `Estimated date: ${hitDate.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}`;
+      if (goalDateVal) {
+        const targetDate = new Date(goalDateVal + 'T00:00:00');
+        const diffDays = Math.round((targetDate - hitDate) / 86400000);
+        if (diffDays > 0) sub += ` — ${diffDays} day${diffDays === 1 ? '' : 's'} ahead of your target date.`;
+        else if (diffDays < 0) sub += ` — ${Math.abs(diffDays)} day${Math.abs(diffDays) === 1 ? '' : 's'} past your target date. Consider more hours/days per week or a faster recruiting pace to close the gap.`;
+        else sub += ` — right on your target date.`;
+      }
+      subEl.textContent = sub;
+    } else {
+      headlineEl.textContent = `Not reached within 12 months`;
+      subEl.textContent = `At this pace, the goal wasn't hit within the 12-month projection window. See adjustments below.`;
+      adjustBox.style.display = 'block';
+      adjustList.innerHTML = `
+        <li>Increase # new reps enrolled per day</li>
+        <li>Increase # days worked per week or # hours worked per day</li>
+        <li>Increase products per enrollment/autoship order (Gold or Platinum builds Coded Bonus and Matrix rate faster)</li>
+        <li>Extend the target date for this goal</li>
+        <li>Lower the goal amount as a starting target, then re-run for a stretch goal once it's hit</li>
+      `;
+    }
+
+    document.getElementById('statReps').textContent = fmtNum(result.personalReps);
+    document.getElementById('statTeam').textContent = fmtNum(result.teamMembers);
+    const totalVolume = result.teamAutoshipVolume * 45;
+    document.getElementById('statVolume').textContent = fmtNum(totalVolume);
+
+    const methodNote = document.getElementById('methodNote');
+    if (usePctMode) {
+      methodNote.style.display = 'block';
+      methodNote.textContent = `Modeled realistically: ${Math.round(followFrac * 100)}% of new reps follow your example and build their own team. Of the rest, ~${Math.round(nonFollowerAutoshipFrac * 100)}% stay on 1 product autoship for personal/family use; everyone else who doesn't build enrolls with the minimum 1 product, one time.`;
+    } else {
+      methodNote.style.display = 'none';
+    }
+
+    const yourRank = matrixRank(productsOnAutoship, result.personalReps);
+    const yourRankLine = document.getElementById('yourRankLine');
+    if (yourRank.rank) {
+      yourRankLine.textContent = `${yourRank.rank} — qualified on ${result.personalReps} personal reps at ${productsOnAutoship * 45} CV personal (pays through matrix level ${yourRank.levels})`;
+    } else {
+      yourRankLine.textContent = `Not yet rank-qualified — need at least 45 CV personal (1 product on autoship) to qualify as Silver.`;
+    }
+
+    const bd = document.getElementById('breakdown');
+    bd.innerHTML = `
+      <div class="breakdown-row"><span>Fast Start Bonus (3x/week)</span><span class="amt">${fmtMoney(result.fastStart)}</span></div>
+      <div class="breakdown-row"><span>Coded Bonus (3x/week)</span><span class="amt">${fmtMoney(result.codedBonus)}</span></div>
+      <div class="breakdown-row"><span>Matrix Pay earned so far${result.monthlyCyclesCompleted === 0 ? ' (no monthly cycle closed yet)' : ''}</span><span class="amt">${fmtMoney(result.matrix)}</span></div>
+      <div class="breakdown-row"><span>Lifestyle Bonus earned so far${result.monthlyCyclesCompleted === 0 ? ' (no monthly cycle closed yet)' : ''}</span><span class="amt">${fmtMoney(result.lifestyle)}</span></div>
+      <div class="breakdown-row"><span>Total Estimated Earnings</span><span class="amt">${fmtMoney(result.cumulativeTotal)}</span></div>
+    `;
+
+    const runRateBox = document.getElementById('runRateBox');
+    const showRunRate = result.runRateMatrix > 0 || result.runRateLifestyle > 0;
+    runRateBox.style.display = showRunRate ? 'block' : 'none';
+    if (showRunRate) {
+      document.getElementById('runRateHeader').textContent = 'Projected Monthly Earnings';
+      document.getElementById('runRateContent').innerHTML = `
+        <div class="breakdown-row"><span>Projected Monthly Matrix Earnings</span><span class="amt">${fmtMoney(result.runRateMatrix)}/mo</span></div>
+        <div class="breakdown-row"><span>Projected Monthly Lifestyle Bonus Earnings</span><span class="amt">${fmtMoney(result.runRateLifestyle)}/mo</span></div>
+      `;
+    }
+
+    const platinumBox = document.getElementById('platinumBox');
+    const pCount = result.platinumQualifiedPersonals;
+    platinumBox.style.display = pCount > 0 ? 'block' : 'none';
+    if (pCount > 0) {
+      document.getElementById('platinumCount').textContent = fmtNum(pCount);
+
+      const diamondLine = document.getElementById('diamondLine');
+      if (pCount >= 12) {
+        diamondLine.textContent = `Diamond qualified — ${fmtNum(pCount)} of 12 personally-enrolled Platinums`;
+      } else {
+        diamondLine.textContent = `${fmtNum(pCount)} of 12 personally-enrolled Platinums needed for Diamond`;
+      }
+
+      const intlLine = document.getElementById('intlDiamondLine');
+      if (pCount >= 20) {
+        intlLine.textContent = `International Diamond qualified — ${fmtNum(pCount)} of 20 personally-enrolled Platinums`;
+      } else {
+        intlLine.textContent = `${fmtNum(pCount)} of 20 personally-enrolled Platinums needed for International Diamond`;
+      }
+    }
+
+    if (typeof resultsEl.scrollIntoView === 'function') {
+      resultsEl.scrollIntoView({ behavior: prefersReducedMotion ? 'auto' : 'smooth', block: 'start' });
+    }
+  };
+
+  if (prefersReducedMotion || result.days < 2) {
+    tickerEl.style.display = 'none';
+    renderResults();
+    return;
+  }
+
+  // Signature moment: quick day-by-day tick-up before revealing final numbers
+  tickerEl.style.display = 'block';
+  resultsEl.style.display = 'none';
+  const steps = result.history.filter((_, i) => i % Math.max(1, Math.ceil(result.history.length / 40)) === 0);
+  let i = 0;
+  const tickDay = document.getElementById('tickDay');
+  const tickReps = document.getElementById('tickReps');
+  const tickTeam = document.getElementById('tickTeam');
+  const tickTotal = document.getElementById('tickTotal');
+
+  activeTickerInterval = setInterval(() => {
+    if (i >= steps.length) {
+      clearInterval(activeTickerInterval);
+      activeTickerInterval = null;
+      tickerEl.style.display = 'none';
+      renderResults();
+      return;
+    }
+    const s = steps[i];
+    tickDay.textContent = s.day;
+    tickReps.textContent = fmtNum(s.reps);
+    tickTeam.textContent = fmtNum(s.team);
+    tickTotal.textContent = fmtMoney(s.total);
+    i++;
+  }, 35);
+});
+</script>
+
+</body>
+</html>
