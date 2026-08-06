@@ -331,6 +331,34 @@
         </div>
       </div>
 
+      <div class="field" style="margin-top:18px;">
+        <label>Calculation Method</label>
+        <div class="method-row" style="display:flex; gap:18px; flex-wrap:wrap; margin-top:6px;">
+          <label style="display:flex; align-items:center; gap:6px; font-weight:400;">
+            <input type="radio" name="calcMethod" id="methodFull" value="full" checked>
+            Full Follow Sponsor (everyone duplicates your pace)
+          </label>
+          <label style="display:flex; align-items:center; gap:6px; font-weight:400;">
+            <input type="radio" name="calcMethod" id="methodPct" value="pct">
+            Percentage Follow Sponsor (realistic mix)
+          </label>
+        </div>
+        <span class="hint">Full Follow assumes every recruit works the exact pace you enter above, forever. Percentage Follow models the real-world mix — only a portion of new reps actually build; the rest join mainly for product.</span>
+      </div>
+
+      <div class="field-grid" id="pctFields" style="display:none; margin-top:10px;">
+        <div class="field">
+          <label for="followPct">% of New Reps Who Follow Your Example</label>
+          <input type="number" id="followPct" min="0" max="100" step="1" value="75">
+          <span class="hint">This % duplicates your full activity pattern (days/week, reps/day, products). The rest just enroll.</span>
+        </div>
+        <div class="field">
+          <label for="nonFollowerAutoshipPct">% of Non-Followers Who Add Autoship</label>
+          <input type="number" id="nonFollowerAutoshipPct" min="0" max="100" step="1" value="22">
+          <span class="hint">Of the reps who don't build, this % stay on 1 product autoship for personal/family use. Non-followers always enroll with the minimum 1 product — never your full order size.</span>
+        </div>
+      </div>
+
       <div class="btn-row">
         <button type="submit" class="btn btn-primary">Run the Numbers</button>
         <button type="button" class="btn btn-secondary" id="clearBtn">Clear</button>
@@ -352,6 +380,7 @@
     <div class="result-banner">
       <div class="headline" id="resultHeadline"></div>
       <div class="sub" id="resultSub"></div>
+      <div class="sub" id="methodNote" style="display:none; margin-top:6px; font-style:italic;"></div>
     </div>
 
     <div class="stat-grid">
@@ -395,7 +424,7 @@
     </div>
 
     <div class="disclaimer">
-      <strong>This is a projection tool, not an income guarantee.</strong> It models a "Do The Same Thing" (DTST) scenario where every team member follows the same activity pattern you enter above — real teams rarely duplicate this evenly, and results vary widely based on individual effort. Matrix Pay is estimated conservatively from your own downline growth only, since real matrix placement also includes spillover from upline sponsors that can't be predicted in advance. No income claims or guarantees are made or implied. Please refer to the official GreatLife Compensation Plan for complete details.
+      <strong>This is a projection tool, not an income guarantee.</strong> "Full Follow Sponsor" models a "Do The Same Thing" (DTST) scenario where every team member follows the same activity pattern you enter above. "Percentage Follow Sponsor" models a more realistic mix, where only a portion of new reps actively build and the rest join mainly for product at distributor pricing. Either way, real teams vary widely based on individual effort. Matrix Pay is estimated conservatively from your own downline growth only, using a team-wide average order size, since real matrix placement also includes spillover from upline sponsors that can't be predicted in advance. No income claims or guarantees are made or implied. Please refer to the official GreatLife Compensation Plan for complete details.
     </div>
   </div>
 </div>
@@ -410,13 +439,43 @@
 // ============================================================
 function isWorkingDay(t, daysPerWeek) { return (t % 7) < daysPerWeek; }
 
-function buildGrowthCurve(maxT, daysPerWeek, newRepsPerDay) {
-  const P = new Array(maxT + 1).fill(1);
+// Generalized growth engine. followFrac = 1 (100%) reproduces the original
+// "Full Follow Sponsor" duplication model exactly. followFrac < 1 models a
+// realistic mix: only that fraction of each new cohort goes on to actively
+// recruit at the Runner's pace; the rest just enroll (and a sub-fraction of
+// THOSE add one personal-use autoship product).
+//
+//   P(t)  = total subtree headcount (everyone, builders and non-builders)
+//   F(t)  = "active recruiter" headcount driving future growth
+//   EV(t) = cumulative enrollment-order product volume (for Fast Start / Coded Bonus)
+//   AV(t) = cumulative standing autoship product volume (for recurring Coded Bonus,
+//           Matrix Pay, and Lifestyle GPV)
+function buildCurves(maxT, daysPerWeek, newRepsPerDay, followFrac, nonFollowerAutoshipFrac, productsOnSignup, productsOnAutoship) {
+  const P = new Array(maxT + 1).fill(0);
+  const F = new Array(maxT + 1).fill(0);
+  const EV = new Array(maxT + 1).fill(0);
+  const AV = new Array(maxT + 1).fill(0);
+
+  // Expected product volume contributed by ONE new enrollee, blended across
+  // followers (buy the Runner's full order size) and non-followers (buy the
+  // minimum 1 product — never the Runner's full order, regardless of what
+  // the Runner selected above).
+  const evPerUnit = followFrac * productsOnSignup + (1 - followFrac) * 1;
+  const avPerUnit = followFrac * productsOnAutoship + (1 - followFrac) * nonFollowerAutoshipFrac * 1;
+
+  P[0] = 1;
+  F[0] = followFrac;
+  EV[0] = evPerUnit;
+  AV[0] = avPerUnit;
+
   for (let t = 1; t <= maxT; t++) {
-    const newMembers = isWorkingDay(t, daysPerWeek) ? P[t - 1] * newRepsPerDay : 0;
-    P[t] = P[t - 1] + newMembers;
+    const newRaw = isWorkingDay(t, daysPerWeek) ? F[t - 1] * newRepsPerDay : 0;
+    P[t] = P[t - 1] + newRaw;
+    F[t] = F[t - 1] + newRaw * followFrac;
+    EV[t] = EV[t - 1] + newRaw * evPerUnit;
+    AV[t] = AV[t - 1] + newRaw * avPerUnit;
   }
-  return P;
+  return { P, F, EV, AV };
 }
 
 // Q(t) = a person's OWN direct personal-enrollment count, t days after THEY joined
@@ -434,13 +493,16 @@ function buildPersonalRecruitCurve(maxT, daysPerWeek, newRepsPerDay) {
 // Of the Runner's own personally-enrolled reps, how many have themselves become
 // Platinum-qualified (135 CV personal + 5+ of their OWN active personal reps)
 // as of the given day? This is the Diamond / International Diamond pipeline metric.
-function countPlatinumQualifiedPersonals(day, legCohorts, Q, productsOnAutoship) {
+function countPlatinumQualifiedPersonals(day, legCohorts, Q, productsOnAutoship, followFrac = 1) {
   if (productsOnAutoship < 3) return 0;
-  return legCohorts.reduce((sum, leg) => {
+  const raw = legCohorts.reduce((sum, leg) => {
     if (leg.day > day) return sum;
     const ownPersonalCount = Q[day - leg.day];
     return ownPersonalCount >= 5 ? sum + leg.count : sum;
   }, 0);
+  // Only reps who actually follow the sponsor's example are plausibly
+  // building deep enough to reach Platinum leadership status themselves.
+  return raw * followFrac;
 }
 
 function classifyOrdinal(ordinal) {
@@ -457,22 +519,30 @@ function matrixRank(productsOnAutoship, activePersonalReps) {
   return { rank: null, levels: 0, rate: 0 };
 }
 
-function simulate({ goalDollars, daysPerWeek, newRepsPerDay, productsOnSignup, productsOnAutoship, capDays = 365 }) {
-  const P = buildGrowthCurve(capDays, daysPerWeek, newRepsPerDay);
+function simulate({ goalDollars, daysPerWeek, newRepsPerDay, productsOnSignup, productsOnAutoship, followFrac = 1, nonFollowerAutoshipFrac = 0, capDays = 365 }) {
+  const { P, F, EV, AV } = buildCurves(capDays, daysPerWeek, newRepsPerDay, followFrac, nonFollowerAutoshipFrac, productsOnSignup, productsOnAutoship);
   const Q = buildPersonalRecruitCurve(capDays, daysPerWeek, newRepsPerDay);
   const legCohorts = [];
   let ordinalCounter = 0;
   let cumulativeTotal = 0, fastStartTotal = 0, codedBonusTotal = 0, matrixTotal = 0, lifestyleTotal = 0;
   const history = [];
 
+  // Blended per-new-enrollee product volume, matching buildCurves' EV[0]/AV[0].
+  const evPerUnit = followFrac * productsOnSignup + (1 - followFrac) * 1;
+
   const teamSizeAt = (day) =>
     legCohorts.reduce((sum, leg) => (leg.day <= day ? sum + leg.count * P[day - leg.day] : sum), 0);
+  const teamAutoshipVolAt = (day) =>
+    legCohorts.reduce((sum, leg) => (leg.day <= day ? sum + leg.count * AV[day - leg.day] : sum), 0);
 
   for (let day = 0; day <= capDays; day++) {
     if (isWorkingDay(day, daysPerWeek)) {
       const countToday = newRepsPerDay;
-      fastStartTotal += countToday * productsOnSignup * 20;
-      cumulativeTotal += countToday * productsOnSignup * 20;
+      // Fast Start Bonus pays on what each direct recruit actually orders at
+      // enrollment — followers order the Runner's full pattern, non-followers
+      // order the minimum 1 product.
+      fastStartTotal += countToday * evPerUnit * 20;
+      cumulativeTotal += countToday * evPerUnit * 20;
 
       let remaining = countToday;
       let pos = ordinalCounter + 1;
@@ -494,8 +564,8 @@ function simulate({ goalDollars, daysPerWeek, newRepsPerDay, productsOnSignup, p
     for (const leg of legCohorts) {
       if (leg.rate === 0 || leg.day > day) continue;
       const t = day - leg.day;
-      const marginal = t === 0 ? 1 : P[t] - P[t - 1];
-      const cb = leg.count * marginal * productsOnSignup * leg.rate;
+      const marginalVol = t === 0 ? EV[0] : EV[t] - EV[t - 1];
+      const cb = leg.count * marginalVol * leg.rate;
       codedBonusTotal += cb;
       cumulativeTotal += cb;
     }
@@ -505,23 +575,25 @@ function simulate({ goalDollars, daysPerWeek, newRepsPerDay, productsOnSignup, p
 
       for (const leg of legCohorts) {
         if (leg.rate === 0 || leg.day > day) continue;
-        const legSize = leg.count * P[day - leg.day];
-        const cb = legSize * productsOnAutoship * leg.rate;
+        const legAutoshipVol = leg.count * AV[day - leg.day];
+        const cb = legAutoshipVol * leg.rate;
         codedBonusTotal += cb;
         cumulativeTotal += cb;
       }
 
       const { levels, rate: matrixRate } = matrixRank(productsOnAutoship, activePersonalReps);
+      const totalTeam = teamSizeAt(day);
+      const totalAutoshipVol = teamAutoshipVolAt(day);
+      const avgProductsPerMember = totalTeam > 0 ? totalAutoshipVol / totalTeam : 0;
       if (levels > 0) {
         const maxPositions = Math.pow(2, levels + 1) - 2;
-        const totalTeam = teamSizeAt(day);
         const filled = Math.min(totalTeam, maxPositions);
-        const mp = filled * productsOnAutoship * matrixRate;
+        const mp = filled * avgProductsPerMember * matrixRate;
         matrixTotal += mp;
         cumulativeTotal += mp;
       }
 
-      const totalGpv = teamSizeAt(day) * productsOnAutoship * 45;
+      const totalGpv = totalAutoshipVol * 45;
       const tiers = [
         [1000000, 15000], [750000, 10000], [400000, 6000], [200000, 3000], [100000, 1500],
         [40000, 1000], [20000, 600], [10000, 400], [5000, 300], [2500, 200],
@@ -539,26 +611,28 @@ function simulate({ goalDollars, daysPerWeek, newRepsPerDay, productsOnSignup, p
     }
 
     if (cumulativeTotal >= goalDollars) {
-      const snapshot = monthlySnapshot(day, legCohorts, P, teamSizeAt, productsOnAutoship, ordinalCounter);
+      const snapshot = monthlySnapshot(day, legCohorts, AV, teamSizeAt, teamAutoshipVolAt, productsOnAutoship, ordinalCounter);
       return {
         reached: true, days: day, personalReps: ordinalCounter, teamMembers: teamSizeAt(day),
+        teamAutoshipVolume: teamAutoshipVolAt(day),
         cumulativeTotal, fastStart: fastStartTotal, codedBonus: codedBonusTotal,
         matrix: matrixTotal, lifestyle: lifestyleTotal, history,
         runRateMatrix: snapshot.matrixPay, runRateLifestyle: snapshot.lifestyleBonus,
         monthlyCyclesCompleted: Math.floor(day / 30),
-        platinumQualifiedPersonals: countPlatinumQualifiedPersonals(day, legCohorts, Q, productsOnAutoship),
+        platinumQualifiedPersonals: countPlatinumQualifiedPersonals(day, legCohorts, Q, productsOnAutoship, followFrac),
       };
     }
   }
 
-  const snapshot = monthlySnapshot(capDays, legCohorts, P, teamSizeAt, productsOnAutoship, ordinalCounter);
+  const snapshot = monthlySnapshot(capDays, legCohorts, AV, teamSizeAt, teamAutoshipVolAt, productsOnAutoship, ordinalCounter);
   return {
     reached: false, days: capDays, personalReps: ordinalCounter, teamMembers: teamSizeAt(capDays),
+    teamAutoshipVolume: teamAutoshipVolAt(capDays),
     cumulativeTotal, fastStart: fastStartTotal, codedBonus: codedBonusTotal,
     matrix: matrixTotal, lifestyle: lifestyleTotal, history,
     runRateMatrix: snapshot.matrixPay, runRateLifestyle: snapshot.lifestyleBonus,
     monthlyCyclesCompleted: Math.floor(capDays / 30),
-    platinumQualifiedPersonals: countPlatinumQualifiedPersonals(capDays, legCohorts, Q, productsOnAutoship),
+    platinumQualifiedPersonals: countPlatinumQualifiedPersonals(capDays, legCohorts, Q, productsOnAutoship, followFrac),
   };
 }
 
@@ -567,17 +641,19 @@ function simulate({ goalDollars, daysPerWeek, newRepsPerDay, productsOnSignup, p
 // This is shown separately as a "recurring run-rate" and is NOT added into the
 // cumulative goal-tracking total, since that total reflects only bonuses actually
 // paid out on their real cadence by the stop day.
-function monthlySnapshot(day, legCohorts, P, teamSizeAt, productsOnAutoship, activePersonalReps) {
+function monthlySnapshot(day, legCohorts, AV, teamSizeAt, teamAutoshipVolAt, productsOnAutoship, activePersonalReps) {
   const { levels, rate: matrixRate } = matrixRank(productsOnAutoship, activePersonalReps);
+  const totalTeam = teamSizeAt(day);
+  const totalAutoshipVol = teamAutoshipVolAt(day);
+  const avgProductsPerMember = totalTeam > 0 ? totalAutoshipVol / totalTeam : 0;
   let matrixPay = 0;
   if (levels > 0) {
     const maxPositions = Math.pow(2, levels + 1) - 2;
-    const totalTeam = teamSizeAt(day);
     const filled = Math.min(totalTeam, maxPositions);
-    matrixPay = filled * productsOnAutoship * matrixRate;
+    matrixPay = filled * avgProductsPerMember * matrixRate;
   }
 
-  const totalGpv = teamSizeAt(day) * productsOnAutoship * 45;
+  const totalGpv = totalAutoshipVol * 45;
   const tiers = [
     [1000000, 15000], [750000, 10000], [400000, 6000], [200000, 3000], [100000, 1500],
     [40000, 1000], [20000, 600], [10000, 400], [5000, 300], [2500, 200],
@@ -604,6 +680,13 @@ const prefersReducedMotion = (typeof window.matchMedia === 'function')
 
 let activeTickerInterval = null;
 
+const pctFieldsEl = document.getElementById('pctFields');
+document.querySelectorAll('input[name="calcMethod"]').forEach((el) => {
+  el.addEventListener('change', () => {
+    pctFieldsEl.style.display = document.getElementById('methodPct').checked ? 'grid' : 'none';
+  });
+});
+
 document.getElementById('clearBtn').addEventListener('click', () => {
   // Stop any in-progress tick animation from a previous run
   if (activeTickerInterval) {
@@ -613,8 +696,12 @@ document.getElementById('clearBtn').addEventListener('click', () => {
   tickerEl.style.display = 'none';
 
   // Blank every field completely rather than reverting to the pre-filled example values
-  form.querySelectorAll('input').forEach((el) => { el.value = ''; });
+  form.querySelectorAll('input[type="number"], input[type="date"]').forEach((el) => { el.value = ''; });
   form.querySelectorAll('select').forEach((el) => { el.selectedIndex = 0; });
+  document.getElementById('methodFull').checked = true;
+  pctFieldsEl.style.display = 'none';
+  document.getElementById('followPct').value = '75';
+  document.getElementById('nonFollowerAutoshipPct').value = '22';
 
   // Fully clear results content, not just hide it
   resultsEl.style.display = 'none';
@@ -653,7 +740,11 @@ form.addEventListener('submit', function (e) {
   const productsOnSignup = parseInt(document.getElementById('productsOnSignup').value);
   const productsOnAutoship = parseInt(document.getElementById('productsOnAutoship').value);
 
-  const result = simulate({ goalDollars, daysPerWeek, newRepsPerDay, productsOnSignup, productsOnAutoship, capDays: 365 });
+  const usePctMode = document.getElementById('methodPct').checked;
+  const followFrac = usePctMode ? Math.max(0, Math.min(100, parseFloat(document.getElementById('followPct').value) || 0)) / 100 : 1;
+  const nonFollowerAutoshipFrac = usePctMode ? Math.max(0, Math.min(100, parseFloat(document.getElementById('nonFollowerAutoshipPct').value) || 0)) / 100 : 0;
+
+  const result = simulate({ goalDollars, daysPerWeek, newRepsPerDay, productsOnSignup, productsOnAutoship, followFrac, nonFollowerAutoshipFrac, capDays: 365 });
 
   const entryDate = new Date();
   const hitDate = new Date(entryDate.getTime() + result.days * 86400000);
@@ -695,8 +786,16 @@ form.addEventListener('submit', function (e) {
 
     document.getElementById('statReps').textContent = fmtNum(result.personalReps);
     document.getElementById('statTeam').textContent = fmtNum(result.teamMembers);
-    const totalVolume = result.teamMembers * productsOnAutoship * 45;
+    const totalVolume = result.teamAutoshipVolume * 45;
     document.getElementById('statVolume').textContent = fmtNum(totalVolume);
+
+    const methodNote = document.getElementById('methodNote');
+    if (usePctMode) {
+      methodNote.style.display = 'block';
+      methodNote.textContent = `Modeled realistically: ${Math.round(followFrac * 100)}% of new reps follow your example and build their own team. Of the rest, ~${Math.round(nonFollowerAutoshipFrac * 100)}% stay on 1 product autoship for personal/family use; everyone else who doesn't build enrolls with the minimum 1 product, one time.`;
+    } else {
+      methodNote.style.display = 'none';
+    }
 
     const yourRank = matrixRank(productsOnAutoship, result.personalReps);
     const yourRankLine = document.getElementById('yourRankLine');
