@@ -668,9 +668,12 @@ function simulate({ goalDollars, daysPerWeek, newRepsPerDay, productsOnSignup, f
   };
   const blendedMatrixDollarRate = () => {
     const runnerLevel = currentRunnerAutoship();
-    const total = fracA * runnerLevel * matrixRateForCV(runnerLevel)
-      + fracB * 2 * matrixRateForCV(2) + fracC * 1 * matrixRateForCV(1)
-      + (fracB * 1 + fracC * 2) * 1 * matrixRateForCV(1);
+    // matrixRateForCV() already returns the FULL per-order dollar amount
+    // ($1 Silver / $2 Gold / $4 Platinum, per order — not per product), so it
+    // must NOT be multiplied by runnerLevel again here.
+    const total = fracA * matrixRateForCV(runnerLevel)
+      + fracB * matrixRateForCV(2) + fracC * matrixRateForCV(1)
+      + (fracB * 1 + fracC * 2) * matrixRateForCV(1);
     return total / cluster;
   };
 
@@ -712,7 +715,9 @@ function simulate({ goalDollars, daysPerWeek, newRepsPerDay, productsOnSignup, f
 
     // Coded Bonus pays "to infinity" on ongoing enrollment-order volume within
     // each qualifying leg's subtree — but ONLY if the Runner is personally on
-    // an autoship level matching or exceeding that leg's Code tier.
+    // an autoship level matching or exceeding that leg's Code tier. No depth
+    // cap here — Coded Bonus pays to unlimited depth by design, unlike Matrix
+    // Pay which is bounded by the 14-level paying structure.
     for (const leg of legCohorts) {
       if (leg.rate === 0 || leg.day > day) continue;
       if (productsOnAutoship < codeTierMinAutoship(leg.tier)) continue;
@@ -739,6 +744,7 @@ function simulate({ goalDollars, daysPerWeek, newRepsPerDay, productsOnSignup, f
       const matrixAccess = matrixLevelAccess(runnerAutoship, activePersonalReps);
 
       // Coded Bonus on this month's standing autoship reorders (also gated).
+      // No depth cap — unlimited-depth by design, same as the daily loop above.
       const monthlyAutoshipLevel = blendedAutoshipLevel();
       for (const leg of legCohorts) {
         if (leg.rate === 0 || leg.day > day) continue;
@@ -748,16 +754,23 @@ function simulate({ goalDollars, daysPerWeek, newRepsPerDay, productsOnSignup, f
         monthCoded += cb; cumulativeTotal += cb; allCoded += cb;
       }
 
+      // Total Team / Team Volume are NOT capped at the 14-level matrix pay
+      // structure — people keep filling in below level 14 (compression just
+      // stops them from being separately PAID positions there). Only Matrix
+      // Pay itself (below) is bounded by matrixAccess.levels.
       const totalTeam = teamSizeAt(day);
       const totalAutoshipVol = totalTeam * monthlyAutoshipLevel;
 
       // Matrix Pay is based on each member's own order size, not the
       // Runner's rank — blendedMatrixDollarRate approximates that per-member
       // dollar rate across the team. Depth (and the position cap that comes
-      // with it) is gated separately by matrixAccess.levels.
+      // with it) is gated separately by matrixAccess.levels. The full 14-level
+      // matrix caps at Carl-confirmed 32,765 total positions (sponsor
+      // excluded, level 1 = 2 people down through level 14, assumes every
+      // position filled — no open-spot/compression modeling).
       let matrixPay = 0;
       if (matrixAccess.levels > 0 && totalTeam > 0) {
-        const maxPositions = Math.pow(2, matrixAccess.levels + 1) - 2;
+        const maxPositions = matrixAccess.levels >= 14 ? 32765 : (Math.pow(2, matrixAccess.levels + 1) - 2);
         const filled = Math.min(totalTeam, maxPositions);
         matrixPay = filled * blendedMatrixDollarRate();
       }
