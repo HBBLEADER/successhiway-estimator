@@ -227,6 +227,23 @@
   .breakdown-row .amt { font-family: var(--font-num); font-weight: 700; color: var(--navy-800); }
   .breakdown-row:last-child .amt { color: var(--navy-900); font-size: 1.05rem; }
 
+  .month-row {
+    display: flex; justify-content: space-between; align-items: center; gap: 10px;
+    padding: 12px 16px; border-bottom: 1px solid var(--line); font-size: 0.9rem;
+  }
+  .month-row:last-child { border-bottom: none; }
+  .month-row .m-label { font-weight: 700; color: var(--navy-800); min-width: 78px; }
+  .month-row .m-detail { color: var(--ink-dim); font-size: 0.85rem; flex: 1; }
+  .month-row .m-amt { font-family: var(--font-num); font-weight: 700; text-align: right; }
+  .month-row.reached .m-amt { color: var(--good); }
+  .month-row.not-reached .m-amt { color: var(--warn); }
+  .month-row .m-status {
+    font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;
+    padding: 3px 8px; border-radius: 999px; white-space: nowrap;
+  }
+  .month-row.reached .m-status { background: var(--good-light); color: var(--good); }
+  .month-row.not-reached .m-status { background: var(--warn-light); color: var(--warn); }
+
   .adjust-box {
     background: var(--warn-light);
     border: 1px solid var(--warn);
@@ -300,17 +317,17 @@
     <form id="goalForm">
       <div class="field-grid">
         <div class="field">
-          <label for="goalDollars">Weekly Income Goal ($)</label>
+          <label for="goalDollars">Monthly Income Goal ($)</label>
           <div class="goal-chip-row" id="goalChipRow" style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:8px;">
           </div>
-          <input type="number" id="goalDollars" min="1" step="1" value="500" required>
+          <input type="number" id="goalDollars" min="1" step="1" value="2500" required>
           <span class="hint">Tap a common amount above, or type any exact figure.</span>
-          <span class="hint">Total dollars you'd like to reach — cumulative, including Fast Start Bonuses.</span>
+          <span class="hint">What you want to earn in a single month — not a running total added up across several months.</span>
         </div>
         <div class="field">
-          <label for="goalDate">Target Date for This Goal</label>
+          <label for="goalDate">Target Date to First Hit This Monthly Goal</label>
           <input type="date" id="goalDate">
-          <span class="hint">The date you're hoping to hit it by. We'll compare this to what the numbers show.</span>
+          <span class="hint">The date you're hoping to be earning this much per month by. We'll compare this to what the numbers show.</span>
         </div>
         <div class="field">
           <label for="daysPerWeek"># Days You'll Work Per Week</label>
@@ -337,14 +354,9 @@
             <option value="3" selected>3 products — 135 CV (Platinum order)</option>
           </select>
         </div>
-        <div class="field">
-          <label for="productsOnAutoship">Products On Monthly Autoship</label>
-          <select id="productsOnAutoship">
-            <option value="1">1 product — 45 CV (Silver)</option>
-            <option value="2">2 products — 90 CV (Gold)</option>
-            <option value="3" selected>3 products — 135 CV (Platinum)</option>
-          </select>
-          <span class="hint">Assumed the same across your whole team, for this projection.</span>
+        <div class="field span-2">
+          <label>Your Own Monthly Autoship</label>
+          <span class="hint">Auto-upgraded during the projection, the way a Runner actually plays it: starts at 1 product, moves to 2 once you hit 5 personally enrolled (to unlock Gold), moves to 3 once you hit 9 (to unlock Platinum — the maximum product order required to earn at any level).</span>
         </div>
       </div>
 
@@ -357,23 +369,29 @@
           </label>
           <label style="display:flex; align-items:center; gap:6px; font-weight:400;">
             <input type="radio" name="calcMethod" id="methodPct" value="pct">
-            Percentage Follow Sponsor (realistic mix)
+            Realistic Mix (3-tier team breakdown)
           </label>
         </div>
-        <span class="hint">Full Follow assumes every recruit works the exact pace you enter above, forever. Percentage Follow models the real-world mix — only a portion of new reps actually build; the rest join mainly for product.</span>
+        <span class="hint">Full Follow assumes every recruit works the exact pace you enter above, forever. Realistic Mix splits new reps into three real-world tiers — a small group who build like you, a larger group who order at Gold and recruit once, and the rest who order at Silver and recruit twice, then stop.</span>
       </div>
 
       <div class="field-grid" id="pctFields" style="display:none; margin-top:10px;">
         <div class="field">
-          <label for="followPct">% of New Reps Who Follow Your Example</label>
-          <input type="number" id="followPct" min="0" max="100" step="1" value="75">
-          <span class="hint">This % duplicates your full activity pattern (days/week, reps/day, products). The rest just enroll.</span>
+          <label for="tierAPct">% Who Build Like You (Segment A)</label>
+          <input type="number" id="tierAPct" min="0" max="100" step="1" value="25">
+          <span class="hint">Duplicates your full activity pattern (days/week, reps/day, your order size) and keeps recruiting indefinitely.</span>
         </div>
         <div class="field">
-          <label for="nonFollowerAutoshipPct">% of Non-Followers Who Add Autoship</label>
-          <input type="number" id="nonFollowerAutoshipPct" min="0" max="100" step="1" value="22">
-          <span class="hint">Of the reps who don't build, this % stay on 1 product autoship for personal/family use. Non-followers always enroll with the minimum 1 product — never your full order size.</span>
+          <label for="tierBPct">% Gold, One-Time Recruit (Segment B)</label>
+          <input type="number" id="tierBPct" min="0" max="100" step="1" value="40">
+          <span class="hint">Orders at Gold (2 products), personally recruits 1 person one time, then stops building.</span>
         </div>
+        <div class="field">
+          <label for="tierCPct">% Silver, Two-Time Recruit (Segment C)</label>
+          <input type="number" id="tierCPct" min="0" max="100" step="1" value="35">
+          <span class="hint">Orders at Silver (1 product), personally recruits 2 people one time, then stops building — mostly product users.</span>
+        </div>
+        <div class="field span-2" id="tierTotalHint" style="color: var(--warn);"></div>
       </div>
 
       <div class="btn-row">
@@ -415,13 +433,6 @@
 
     <div class="breakdown" id="breakdown"></div>
 
-    <div class="breakdown" id="runRateBox" style="display:none; margin-top:-8px;">
-      <div class="breakdown-row" style="background:var(--paper-dim); font-weight:700;">
-        <span id="runRateHeader">Projected Monthly Earnings</span><span></span>
-      </div>
-      <div id="runRateContent"></div>
-    </div>
-
     <div class="breakdown" id="platinumBox" style="display:none; margin-top:-8px;">
       <div class="breakdown-row" style="background:var(--paper-dim); font-weight:700;">
         <span>Leadership Pipeline (Your Downline)</span><span></span>
@@ -431,8 +442,15 @@
       <div class="breakdown-row"><span id="intlDiamondLine"></span></div>
     </div>
 
+    <div class="breakdown" id="monthlyProgressBox" style="margin-top:-8px;">
+      <div class="breakdown-row" style="background:var(--paper-dim); font-weight:700;">
+        <span>Month-by-Month Progress</span><span></span>
+      </div>
+      <div id="monthlyProgressContent"></div>
+    </div>
+
     <div class="adjust-box no-print" id="adjustBox" style="display:none;">
-      <h3>Not there yet within 12 months — what to adjust</h3>
+      <h3>Not there yet within 3 months — what to adjust</h3>
       <ul id="adjustList"></ul>
     </div>
 
@@ -441,7 +459,7 @@
     </div>
 
     <div class="disclaimer">
-      <strong>This is a projection tool, not an income guarantee.</strong> "Full Follow Sponsor" models a "Do The Same Thing" (DTST) scenario where every team member follows the same activity pattern you enter above. "Percentage Follow Sponsor" models a more realistic mix, where only a portion of new reps actively build and the rest join mainly for product at distributor pricing. Either way, real teams vary widely based on individual effort. Matrix Pay is estimated conservatively from your own downline growth only, using a team-wide average order size, since real matrix placement also includes spillover from upline sponsors that can't be predicted in advance. No income claims or guarantees are made or implied. Please refer to the official GreatLife Compensation Plan for complete details.
+      <strong>This is a projection tool, not an income guarantee.</strong> Your goal is evaluated as a MONTHLY income figure — each simulated month's own earnings (not a running total added up across months) is what's checked against your goal, matching how the compensation plan actually resets and pays out each month. This projection runs a maximum of 3 months. That limit is intentional: Coded Bonus pays to infinite depth with no generational limit, so its growth compounds very quickly as a team builds — which is a real, accurate feature of the compensation plan, not a flaw in this tool. Capping the projection at 3 months keeps the numbers meaningful and avoids projecting so far out that the math stops being a realistic reflection of early team-building activity. It's also where most Runners realistically hit their first goal. "Full Follow Sponsor" models a "Do The Same Thing" (DTST) scenario where every team member follows the same activity pattern you enter above, indefinitely. "Realistic Mix" models a more grounded three-tier breakdown instead: a smaller group who build like you and keep recruiting, a larger group who order at Gold and personally recruit once before stopping, and the rest who order at Silver and personally recruit twice before stopping. Either way, real teams vary widely based on individual effort. This tool models only your own personal activity and the activity of your personally-enrolled downline — it does not model spillover volume from upline sponsoring efforts anywhere, including Matrix Pay, since company-wide spillover can't be predicted for an individual projection. No income claims or guarantees are made or implied. Please refer to the official GreatLife Compensation Plan for complete details.
     </div>
   </div>
 </div>
@@ -456,43 +474,65 @@
 // ============================================================
 function isWorkingDay(t, daysPerWeek) { return (t % 7) < daysPerWeek; }
 
-// Generalized growth engine. followFrac = 1 (100%) reproduces the original
-// "Full Follow Sponsor" duplication model exactly. followFrac < 1 models a
-// realistic mix: only that fraction of each new cohort goes on to actively
-// recruit at the Runner's pace; the rest just enroll (and a sub-fraction of
-// THOSE add one personal-use autoship product).
+// Generalized growth engine, now modeling THREE real-world segments per new
+// recruiting event instead of a simple follow/non-follow split:
+//   Segment A (fracA) — duplicates the Runner's full pattern (own order size,
+//     recruiting pace) and keeps recruiting indefinitely.
+//   Segment B (fracB) — orders at Gold (2 products), personally recruits 1
+//     person ONE TIME, then stops building. That one recruit is terminal
+//     (never recruits further) and orders the minimum 1 product.
+//   Segment C (fracC) — orders at Silver (1 product), personally recruits 2
+//     people ONE TIME, then stops building. Those recruits are terminal and
+//     order the minimum 1 product each.
+// Only Segment A continues recruiting (drives F, future growth capacity).
+// Segments B and C still add real one-time headcount and volume (via the
+// "cluster" they bring in), they just don't compound further themselves.
 //
-//   P(t)  = total subtree headcount (everyone, builders and non-builders)
-//   F(t)  = "active recruiter" headcount driving future growth
+//   P(t)  = total subtree headcount (everyone: A, B, C, and their one-timers)
+//   F(t)  = "active recruiter" headcount driving future growth (Segment A only)
 //   EV(t) = cumulative enrollment-order product volume (for Fast Start / Coded Bonus)
-//   AV(t) = cumulative standing autoship product volume (for recurring Coded Bonus,
-//           Matrix Pay, and Lifestyle GPV)
-function buildCurves(maxT, daysPerWeek, newRepsPerDay, followFrac, nonFollowerAutoshipFrac, productsOnSignup, productsOnAutoship) {
+// The Runner's own autoship level is no longer a fixed input — it auto-
+// upgrades over the course of the projection the way a Runner actually plays
+// it: start at 1 product (the minimum to earn anything), move to 2 products
+// once 5+ personally enrolled (to unlock Gold), move to 3 products once 9+
+// personally enrolled (to unlock Platinum — the maximum product order
+// required to earn at any level in the plan).
+function runnerAutoshipAt(activePersonalReps) {
+  if (activePersonalReps >= 9) return 3;
+  if (activePersonalReps >= 5) return 2;
+  return 1;
+}
+
+// Total new headcount added per raw recruiting event: the direct enrollee,
+// plus Segment B's one recruit and Segment C's two recruits (weighted by
+// their share of the population).
+function clusterMultiplier(fracB, fracC) {
+  return 1 + fracB * 1 + fracC * 2;
+}
+
+function buildCurves(maxT, daysPerWeek, newRepsPerDay, fracA, fracB, fracC, productsOnSignup) {
   const P = new Array(maxT + 1).fill(0);
   const F = new Array(maxT + 1).fill(0);
   const EV = new Array(maxT + 1).fill(0);
-  const AV = new Array(maxT + 1).fill(0);
+  const cluster = clusterMultiplier(fracB, fracC);
 
-  // Expected product volume contributed by ONE new enrollee, blended across
-  // followers (buy the Runner's full order size) and non-followers (buy the
-  // minimum 1 product — never the Runner's full order, regardless of what
-  // the Runner selected above).
-  const evPerUnit = followFrac * productsOnSignup + (1 - followFrac) * 1;
-  const avPerUnit = followFrac * productsOnAutoship + (1 - followFrac) * nonFollowerAutoshipFrac * 1;
+  // Volume from the direct enrollee's own order, blended across the three
+  // segments (A buys the Runner's order size, B buys Gold/2, C buys Silver/1),
+  // plus the minimum 1-product order from each one-time recruit B/C brings in.
+  const evPerUnitCluster = fracA * productsOnSignup + fracB * 2 + fracC * 1
+    + (fracB * 1 + fracC * 2) * 1;
 
   P[0] = 1;
-  F[0] = followFrac;
-  EV[0] = evPerUnit;
-  AV[0] = avPerUnit;
+  F[0] = fracA;
+  EV[0] = evPerUnitCluster;
 
   for (let t = 1; t <= maxT; t++) {
     const newRaw = isWorkingDay(t, daysPerWeek) ? F[t - 1] * newRepsPerDay : 0;
-    P[t] = P[t - 1] + newRaw;
-    F[t] = F[t - 1] + newRaw * followFrac;
-    EV[t] = EV[t - 1] + newRaw * evPerUnit;
-    AV[t] = AV[t - 1] + newRaw * avPerUnit;
+    P[t] = P[t - 1] + newRaw * cluster;
+    F[t] = F[t - 1] + newRaw * fracA;
+    EV[t] = EV[t - 1] + newRaw * evPerUnitCluster;
   }
-  return { P, F, EV, AV };
+  return { P, F, EV };
 }
 
 // Q(t) = a person's OWN direct personal-enrollment count, t days after THEY joined
@@ -508,18 +548,18 @@ function buildPersonalRecruitCurve(maxT, daysPerWeek, newRepsPerDay) {
 }
 
 // Of the Runner's own personally-enrolled reps, how many have themselves become
-// Platinum-qualified (135 CV personal + 5+ of their OWN active personal reps)
-// as of the given day? This is the Diamond / International Diamond pipeline metric.
-function countPlatinumQualifiedPersonals(day, legCohorts, Q, productsOnAutoship, followFrac = 1) {
-  if (productsOnAutoship < 3) return 0;
+// Platinum-qualified (9+ of their OWN personally-enrolled reps, which — under
+// the auto-upgrade model — also means they're on 3-product autoship) as of
+// the given day? This is the Diamond / International Diamond pipeline metric.
+function countPlatinumQualifiedPersonals(day, legCohorts, Q, fracA = 1) {
   const raw = legCohorts.reduce((sum, leg) => {
     if (leg.day > day) return sum;
     const ownPersonalCount = Q[day - leg.day];
-    return ownPersonalCount >= 5 ? sum + leg.count : sum;
+    return ownPersonalCount >= 9 ? sum + leg.count : sum;
   }, 0);
-  // Only reps who actually follow the sponsor's example are plausibly
+  // Only reps who actually build like the Runner (Segment A) are plausibly
   // building deep enough to reach Platinum leadership status themselves.
-  return raw * followFrac;
+  return raw * fracA;
 }
 
 function classifyOrdinal(ordinal) {
@@ -529,37 +569,127 @@ function classifyOrdinal(ordinal) {
   return { tier: 'Platinum', rate: 6 };
 }
 
-function matrixRank(productsOnAutoship, activePersonalReps) {
-  if (productsOnAutoship >= 3 && activePersonalReps >= 5) return { rank: 'Platinum', levels: 14, rate: 4 };
-  if (productsOnAutoship >= 2 && activePersonalReps >= 2) return { rank: 'Gold', levels: 10, rate: 2 };
-  if (productsOnAutoship >= 1) return { rank: 'Silver', levels: 7, rate: 1 };
-  return { rank: null, levels: 0, rate: 0 };
+// Rank Advancement (Silver/Gold/Platinum — gates Coded Bonus tiers and the
+// Platinum+GPV requirement for Lifestyle Bonus) requires BOTH the Runner's
+// personal enrollment count AND the Runner's own matching autoship level —
+// no GPV requirement for these three tiers. Silver = 3-4 personals + 1-product
+// autoship. Gold = 5-8 personals + 2-product autoship. Platinum = 9+
+// personals + 3-product autoship.
+function rankAdvancement(productsOnAutoship, activePersonalReps) {
+  if (productsOnAutoship >= 3 && activePersonalReps >= 9) return { rank: 'Platinum' };
+  if (productsOnAutoship >= 2 && activePersonalReps >= 5) return { rank: 'Gold' };
+  if (productsOnAutoship >= 1 && activePersonalReps >= 3) return { rank: 'Silver' };
+  return { rank: null };
 }
 
-function simulate({ goalDollars, daysPerWeek, newRepsPerDay, productsOnSignup, productsOnAutoship, followFrac = 1, nonFollowerAutoshipFrac = 0, capDays = 365 }) {
-  const { P, F, EV, AV } = buildCurves(capDays, daysPerWeek, newRepsPerDay, followFrac, nonFollowerAutoshipFrac, productsOnSignup, productsOnAutoship);
+// Matrix Level access is a SEPARATE qualification system from Rank
+// Advancement, gating how many matrix levels deep the Runner earns on.
+// Levels 1-7: 1-product autoship + 1+ personally enrolled (the Estimator
+// treats this as needing at least 1 personal, per Carl's direction, rather
+// than the official plan's literal "0 sponsoring required"). Levels 8-10:
+// 2-product autoship + 2+ personally enrolled. Levels 11-14: 3-product
+// autoship + 5+ personally enrolled.
+function matrixLevelAccess(productsOnAutoship, activePersonalReps) {
+  if (productsOnAutoship >= 3 && activePersonalReps >= 5) return { levels: 14 };
+  if (productsOnAutoship >= 2 && activePersonalReps >= 2) return { levels: 10 };
+  if (productsOnAutoship >= 1 && activePersonalReps >= 1) return { levels: 7 };
+  return { levels: 0 };
+}
+
+// Matrix Pay rate is based on EACH MEMBER'S OWN order size (not the Runner's
+// rank): $1/product on a 45 CV (1-product) order, $2/product on a 90 CV
+// (2-product) order, $4/product on a 135 CV (3-product) order, $0.50/product
+// on a sub-45 CV order (not currently reachable via the UI's 1/2/3 selects,
+// kept here for completeness).
+function matrixRateForCV(products) {
+  if (products >= 3) return 4;
+  if (products === 2) return 2;
+  if (products === 1) return 1;
+  if (products > 0) return 0.5;
+  return 0;
+}
+
+// Coded Bonus tiers are gated by the RUNNER's own autoship level, independent
+// of the Runner's overall rank name: you must personally be on at least this
+// many autoship products to collect that tier's Code payout on a qualifying
+// downline member's order.
+function codeTierMinAutoship(tier) {
+  if (tier === 'Silver') return 1;
+  if (tier === 'Gold') return 2;
+  if (tier === 'Platinum') return 3;
+  return 99;
+}
+
+// Runs month by month (30-day cycles, matching the company's actual monthly
+// order/autoship reset). At the end of every month, THAT MONTH's own earned
+// income (Fast Start + Coded Bonus + Matrix Pay + Lifestyle Bonus, using that
+// month's reset order/autoship activity) is checked against the Runner's
+// MONTHLY goal — never a cumulative multi-month running total, since a
+// cumulative total would misrepresent a monthly-income claim. Stops at the
+// first month where that month's earned income meets/exceeds the goal, capped
+// at 3 months (see comment above simulate()). A snapshot is recorded for every simulated month either way.
+function simulate({ goalDollars, daysPerWeek, newRepsPerDay, productsOnSignup, fracA = 1, fracB = 0, fracC = 0, capMonths = 3 }) {
+  const capDays = capMonths * 30;
+  const { P, F, EV } = buildCurves(capDays, daysPerWeek, newRepsPerDay, fracA, fracB, fracC, productsOnSignup);
   const Q = buildPersonalRecruitCurve(capDays, daysPerWeek, newRepsPerDay);
   const legCohorts = [];
   let ordinalCounter = 0;
-  let cumulativeTotal = 0, fastStartTotal = 0, codedBonusTotal = 0, matrixTotal = 0, lifestyleTotal = 0;
+  let cumulativeTotal = 0;
+  let allFastStart = 0, allCoded = 0, allMatrix = 0, allLifestyle = 0;
+  let monthFastStart = 0, monthCoded = 0;
   const history = [];
+  const months = [];
+  const cluster = clusterMultiplier(fracB, fracC);
 
-  // Blended per-new-enrollee product volume, matching buildCurves' EV[0]/AV[0].
-  const evPerUnit = followFrac * productsOnSignup + (1 - followFrac) * 1;
+  // Blended per-recruiting-event product volume, matching buildCurves' EV[0]
+  // — the direct enrollee's own order across the three segments, plus the
+  // one-time recruits Segments B and C bring in.
+  const evPerUnitCluster = fracA * productsOnSignup + fracB * 2 + fracC * 1
+    + (fracB * 1 + fracC * 2) * 1;
 
   const teamSizeAt = (day) =>
     legCohorts.reduce((sum, leg) => (leg.day <= day ? sum + leg.count * P[day - leg.day] : sum), 0);
-  const teamAutoshipVolAt = (day) =>
-    legCohorts.reduce((sum, leg) => (leg.day <= day ? sum + leg.count * AV[day - leg.day] : sum), 0);
+
+  // The Runner's own autoship auto-upgrades as their personal count grows.
+  // Since ordinalCounter (the Runner's own personal-enrollment count) grows
+  // deterministically and is already tracked exactly, this can be read live
+  // at any point in the day loop.
+  const currentRunnerAutoship = () => runnerAutoshipAt(ordinalCounter);
+
+  // Team-wide average autoship level / Matrix-dollar rate, blended across all
+  // three segments plus their one-time recruits (Segment A tracks the
+  // Runner's own dynamic level; B is fixed at Gold/2; C and all one-time
+  // recruits are fixed at the minimum 1 product), weighted by their share of
+  // total cluster headcount.
+  const blendedAutoshipLevel = () => {
+    const runnerLevel = currentRunnerAutoship();
+    const total = fracA * runnerLevel + fracB * 2 + fracC * 1 + (fracB * 1 + fracC * 2) * 1;
+    return total / cluster;
+  };
+  const blendedMatrixDollarRate = () => {
+    const runnerLevel = currentRunnerAutoship();
+    const total = fracA * runnerLevel * matrixRateForCV(runnerLevel)
+      + fracB * 2 * matrixRateForCV(2) + fracC * 1 * matrixRateForCV(1)
+      + (fracB * 1 + fracC * 2) * 1 * matrixRateForCV(1);
+    return total / cluster;
+  };
+
+  const lifestyleTiers = [
+    [1000000, 15000], [750000, 10000], [400000, 6000], [200000, 3000], [100000, 1500],
+    [40000, 1000], [20000, 600], [10000, 400], [5000, 300], [2500, 200],
+  ];
+
+  let reachedMonth = null;
 
   for (let day = 0; day <= capDays; day++) {
     if (isWorkingDay(day, daysPerWeek)) {
       const countToday = newRepsPerDay;
-      // Fast Start Bonus pays on what each direct recruit actually orders at
-      // enrollment — followers order the Runner's full pattern, non-followers
-      // order the minimum 1 product.
-      fastStartTotal += countToday * evPerUnit * 20;
-      cumulativeTotal += countToday * evPerUnit * 20;
+      // Fast Start Bonus pays on what each new recruiting-event cluster
+      // actually orders at enrollment — the direct enrollee's own order
+      // (Segment A/B/C dependent) plus Segment B/C's one-time recruits'
+      // minimum 1-product orders, all blended into evPerUnitCluster.
+      const fs = countToday * evPerUnitCluster * 20;
+      monthFastStart += fs; cumulativeTotal += fs; allFastStart += fs;
 
       let remaining = countToday;
       let pos = ordinalCounter + 1;
@@ -578,108 +708,109 @@ function simulate({ goalDollars, daysPerWeek, newRepsPerDay, productsOnSignup, p
       ordinalCounter += countToday;
     }
 
+    const productsOnAutoship = currentRunnerAutoship();
+
+    // Coded Bonus pays "to infinity" on ongoing enrollment-order volume within
+    // each qualifying leg's subtree — but ONLY if the Runner is personally on
+    // an autoship level matching or exceeding that leg's Code tier.
     for (const leg of legCohorts) {
       if (leg.rate === 0 || leg.day > day) continue;
+      if (productsOnAutoship < codeTierMinAutoship(leg.tier)) continue;
       const t = day - leg.day;
       const marginalVol = t === 0 ? EV[0] : EV[t] - EV[t - 1];
       const cb = leg.count * marginalVol * leg.rate;
-      codedBonusTotal += cb;
-      cumulativeTotal += cb;
-    }
-
-    if (day > 0 && day % 30 === 0) {
-      const activePersonalReps = ordinalCounter;
-
-      for (const leg of legCohorts) {
-        if (leg.rate === 0 || leg.day > day) continue;
-        const legAutoshipVol = leg.count * AV[day - leg.day];
-        const cb = legAutoshipVol * leg.rate;
-        codedBonusTotal += cb;
-        cumulativeTotal += cb;
-      }
-
-      const { levels, rate: matrixRate } = matrixRank(productsOnAutoship, activePersonalReps);
-      const totalTeam = teamSizeAt(day);
-      const totalAutoshipVol = teamAutoshipVolAt(day);
-      const avgProductsPerMember = totalTeam > 0 ? totalAutoshipVol / totalTeam : 0;
-      if (levels > 0) {
-        const maxPositions = Math.pow(2, levels + 1) - 2;
-        const filled = Math.min(totalTeam, maxPositions);
-        const mp = filled * avgProductsPerMember * matrixRate;
-        matrixTotal += mp;
-        cumulativeTotal += mp;
-      }
-
-      const totalGpv = totalAutoshipVol * 45;
-      const tiers = [
-        [1000000, 15000], [750000, 10000], [400000, 6000], [200000, 3000], [100000, 1500],
-        [40000, 1000], [20000, 600], [10000, 400], [5000, 300], [2500, 200],
-      ];
-      let lb = 0;
-      for (const [threshold, bonus] of tiers) { if (totalGpv >= threshold) { lb = bonus; break; } }
-      if (productsOnAutoship >= 3 && activePersonalReps >= 9) {
-        lifestyleTotal += lb;
-        cumulativeTotal += lb;
-      }
+      monthCoded += cb; cumulativeTotal += cb; allCoded += cb;
     }
 
     if (day % 1 === 0) {
       history.push({ day, reps: ordinalCounter, team: teamSizeAt(day), total: cumulativeTotal });
     }
 
-    if (cumulativeTotal >= goalDollars) {
-      const snapshot = monthlySnapshot(day, legCohorts, AV, teamSizeAt, teamAutoshipVolAt, productsOnAutoship, ordinalCounter);
-      return {
-        reached: true, days: day, personalReps: ordinalCounter, teamMembers: teamSizeAt(day),
-        teamAutoshipVolume: teamAutoshipVolAt(day),
-        cumulativeTotal, fastStart: fastStartTotal, codedBonus: codedBonusTotal,
-        matrix: matrixTotal, lifestyle: lifestyleTotal, history,
-        runRateMatrix: snapshot.matrixPay, runRateLifestyle: snapshot.lifestyleBonus,
-        monthlyCyclesCompleted: Math.floor(day / 30),
-        platinumQualifiedPersonals: countPlatinumQualifiedPersonals(day, legCohorts, Q, productsOnAutoship, followFrac),
-      };
+    // Month-end checkpoint — this is the company's actual monthly reset point.
+    // Standing autoship orders, Coded Bonus on those orders, Matrix Pay, and
+    // Lifestyle Bonus are all evaluated fresh for this month, then this
+    // month's total earned income (not the running cumulative total) is what
+    // gets checked against the Runner's monthly goal.
+    if (day > 0 && day % 30 === 0) {
+      const monthNum = day / 30;
+      const activePersonalReps = ordinalCounter;
+      const runnerAutoship = currentRunnerAutoship();
+      const rankInfo = rankAdvancement(runnerAutoship, activePersonalReps);
+      const matrixAccess = matrixLevelAccess(runnerAutoship, activePersonalReps);
+
+      // Coded Bonus on this month's standing autoship reorders (also gated).
+      const monthlyAutoshipLevel = blendedAutoshipLevel();
+      for (const leg of legCohorts) {
+        if (leg.rate === 0 || leg.day > day) continue;
+        if (runnerAutoship < codeTierMinAutoship(leg.tier)) continue;
+        const legAutoshipVol = leg.count * P[day - leg.day] * monthlyAutoshipLevel;
+        const cb = legAutoshipVol * leg.rate;
+        monthCoded += cb; cumulativeTotal += cb; allCoded += cb;
+      }
+
+      const totalTeam = teamSizeAt(day);
+      const totalAutoshipVol = totalTeam * monthlyAutoshipLevel;
+
+      // Matrix Pay is based on each member's own order size, not the
+      // Runner's rank — blendedMatrixDollarRate approximates that per-member
+      // dollar rate across the team. Depth (and the position cap that comes
+      // with it) is gated separately by matrixAccess.levels.
+      let matrixPay = 0;
+      if (matrixAccess.levels > 0 && totalTeam > 0) {
+        const maxPositions = Math.pow(2, matrixAccess.levels + 1) - 2;
+        const filled = Math.min(totalTeam, maxPositions);
+        matrixPay = filled * blendedMatrixDollarRate();
+      }
+      cumulativeTotal += matrixPay; allMatrix += matrixPay;
+
+      // Lifestyle Bonus requires Platinum rank PLUS qualifying volume — rank
+      // alone is not sufficient.
+      let lifestyleBonus = 0;
+      if (rankInfo.rank === 'Platinum') {
+        const totalGpv = totalAutoshipVol * 45;
+        for (const [threshold, bonus] of lifestyleTiers) { if (totalGpv >= threshold) { lifestyleBonus = bonus; break; } }
+      }
+      cumulativeTotal += lifestyleBonus; allLifestyle += lifestyleBonus;
+
+      const monthEarned = monthFastStart + monthCoded + matrixPay + lifestyleBonus;
+      const pCount = countPlatinumQualifiedPersonals(day, legCohorts, Q, fracA);
+
+      months.push({
+        monthNum, day,
+        rank: rankInfo.rank,
+        runnerAutoship,
+        personalEnrolled: activePersonalReps,
+        teamMembers: totalTeam,
+        teamVolume: totalAutoshipVol * 45,
+        platinumQualifiedPersonals: pCount,
+        monthlyGoal: goalDollars,
+        monthlyEarned: monthEarned,
+        monthFastStart, monthCoded, matrixPay, lifestyleBonus,
+        reached: monthEarned >= goalDollars,
+      });
+
+      if (monthEarned >= goalDollars) {
+        reachedMonth = monthNum;
+        break;
+      }
+
+      // Monthly reset — next month's order/autoship activity starts fresh.
+      monthFastStart = 0;
+      monthCoded = 0;
     }
   }
 
-  const snapshot = monthlySnapshot(capDays, legCohorts, AV, teamSizeAt, teamAutoshipVolAt, productsOnAutoship, ordinalCounter);
   return {
-    reached: false, days: capDays, personalReps: ordinalCounter, teamMembers: teamSizeAt(capDays),
-    teamAutoshipVolume: teamAutoshipVolAt(capDays),
-    cumulativeTotal, fastStart: fastStartTotal, codedBonus: codedBonusTotal,
-    matrix: matrixTotal, lifestyle: lifestyleTotal, history,
-    runRateMatrix: snapshot.matrixPay, runRateLifestyle: snapshot.lifestyleBonus,
-    monthlyCyclesCompleted: Math.floor(capDays / 30),
-    platinumQualifiedPersonals: countPlatinumQualifiedPersonals(capDays, legCohorts, Q, productsOnAutoship, followFrac),
+    reached: reachedMonth !== null,
+    reachedMonth,
+    monthsElapsed: months.length,
+    months,
+    finalMonth: months[months.length - 1] || null,
+    cumulativeTotal,
+    fastStart: allFastStart, codedBonus: allCoded, matrix: allMatrix, lifestyle: allLifestyle,
+    personalReps: ordinalCounter,
+    history,
   };
-}
-
-// Evaluates what Matrix Pay + Lifestyle Bonus WOULD be if a monthly cycle closed
-// today, using current team size — even if a real 30-day cycle hasn't completed yet.
-// This is shown separately as a "recurring run-rate" and is NOT added into the
-// cumulative goal-tracking total, since that total reflects only bonuses actually
-// paid out on their real cadence by the stop day.
-function monthlySnapshot(day, legCohorts, AV, teamSizeAt, teamAutoshipVolAt, productsOnAutoship, activePersonalReps) {
-  const { levels, rate: matrixRate } = matrixRank(productsOnAutoship, activePersonalReps);
-  const totalTeam = teamSizeAt(day);
-  const totalAutoshipVol = teamAutoshipVolAt(day);
-  const avgProductsPerMember = totalTeam > 0 ? totalAutoshipVol / totalTeam : 0;
-  let matrixPay = 0;
-  if (levels > 0) {
-    const maxPositions = Math.pow(2, levels + 1) - 2;
-    const filled = Math.min(totalTeam, maxPositions);
-    matrixPay = filled * avgProductsPerMember * matrixRate;
-  }
-
-  const totalGpv = totalAutoshipVol * 45;
-  const tiers = [
-    [1000000, 15000], [750000, 10000], [400000, 6000], [200000, 3000], [100000, 1500],
-    [40000, 1000], [20000, 600], [10000, 400], [5000, 300], [2500, 200],
-  ];
-  let lifestyleBonus = 0;
-  for (const [threshold, bonus] of tiers) { if (totalGpv >= threshold) { lifestyleBonus = bonus; break; } }
-  if (!(productsOnAutoship >= 3 && activePersonalReps >= 9)) lifestyleBonus = 0;
-
-  return { matrixPay, lifestyleBonus };
 }
 
 // ============================================================
@@ -698,20 +829,35 @@ const prefersReducedMotion = (typeof window.matchMedia === 'function')
 let activeTickerInterval = null;
 
 const pctFieldsEl = document.getElementById('pctFields');
+const tierTotalHintEl = document.getElementById('tierTotalHint');
 document.querySelectorAll('input[name="calcMethod"]').forEach((el) => {
   el.addEventListener('change', () => {
     pctFieldsEl.style.display = document.getElementById('methodPct').checked ? 'grid' : 'none';
   });
 });
 
+function syncTierTotal() {
+  const a = parseFloat(document.getElementById('tierAPct').value) || 0;
+  const b = parseFloat(document.getElementById('tierBPct').value) || 0;
+  const c = parseFloat(document.getElementById('tierCPct').value) || 0;
+  const total = a + b + c;
+  tierTotalHintEl.textContent = Math.round(total) === 100
+    ? ''
+    : `These three should add up to 100% — currently ${Math.round(total)}%.`;
+}
+['tierAPct', 'tierBPct', 'tierCPct'].forEach((id) => {
+  document.getElementById(id).addEventListener('input', syncTierTotal);
+});
+syncTierTotal();
+
 const goalInput = document.getElementById('goalDollars');
-const goalPresets = [125, 250, 350, 500, 1000, 2500, 5000];
+const goalPresets = [1000, 2500, 5000, 10000, 15000, 25000];
 const goalChipRow = document.getElementById('goalChipRow');
 goalPresets.forEach((amt) => {
   const chip = document.createElement('button');
   chip.type = 'button';
   chip.className = 'goal-chip';
-  chip.textContent = amt >= 5000 ? '$5,000+' : ('$' + amt.toLocaleString());
+  chip.textContent = amt >= 25000 ? '$25,000+' : ('$' + amt.toLocaleString());
   chip.addEventListener('click', () => {
     goalInput.value = amt;
     syncGoalChips();
@@ -740,8 +886,10 @@ document.getElementById('clearBtn').addEventListener('click', () => {
   form.querySelectorAll('select').forEach((el) => { el.selectedIndex = 0; });
   document.getElementById('methodFull').checked = true;
   pctFieldsEl.style.display = 'none';
-  document.getElementById('followPct').value = '75';
-  document.getElementById('nonFollowerAutoshipPct').value = '22';
+  document.getElementById('tierAPct').value = '25';
+  document.getElementById('tierBPct').value = '40';
+  document.getElementById('tierCPct').value = '35';
+  syncTierTotal();
   syncGoalChips();
 
   // Fully clear results content, not just hide it
@@ -753,7 +901,6 @@ document.getElementById('clearBtn').addEventListener('click', () => {
   document.getElementById('statTeam').textContent = '0';
   document.getElementById('statVolume').textContent = '0';
   document.getElementById('breakdown').innerHTML = '';
-  document.getElementById('runRateBox').style.display = 'none';
   document.getElementById('platinumBox').style.display = 'none';
   document.getElementById('yourRankLine').textContent = '';
   document.getElementById('adjustBox').style.display = 'none';
@@ -779,16 +926,25 @@ form.addEventListener('submit', function (e) {
   const callsPerDay = parseInt(document.getElementById('callsPerDay').value) || 0;
   const newRepsPerDay = parseFloat(document.getElementById('newRepsPerDay').value) || 0;
   const productsOnSignup = parseInt(document.getElementById('productsOnSignup').value);
-  const productsOnAutoship = parseInt(document.getElementById('productsOnAutoship').value);
 
   const usePctMode = document.getElementById('methodPct').checked;
-  const followFrac = usePctMode ? Math.max(0, Math.min(100, parseFloat(document.getElementById('followPct').value) || 0)) / 100 : 1;
-  const nonFollowerAutoshipFrac = usePctMode ? Math.max(0, Math.min(100, parseFloat(document.getElementById('nonFollowerAutoshipPct').value) || 0)) / 100 : 0;
+  let fracA = 1, fracB = 0, fracC = 0;
+  if (usePctMode) {
+    const aRaw = Math.max(0, parseFloat(document.getElementById('tierAPct').value) || 0);
+    const bRaw = Math.max(0, parseFloat(document.getElementById('tierBPct').value) || 0);
+    const cRaw = Math.max(0, parseFloat(document.getElementById('tierCPct').value) || 0);
+    const total = aRaw + bRaw + cRaw;
+    if (total > 0) {
+      fracA = aRaw / total;
+      fracB = bRaw / total;
+      fracC = cRaw / total;
+    }
+  }
 
-  const result = simulate({ goalDollars, daysPerWeek, newRepsPerDay, productsOnSignup, productsOnAutoship, followFrac, nonFollowerAutoshipFrac, capDays: 365 });
+  const result = simulate({ goalDollars, daysPerWeek, newRepsPerDay, productsOnSignup, fracA, fracB, fracC, capMonths: 3 });
 
   const entryDate = new Date();
-  const hitDate = new Date(entryDate.getTime() + result.days * 86400000);
+  const monthDate = (monthNum) => new Date(entryDate.getTime() + monthNum * 30 * 86400000);
 
   const renderResults = () => {
     resultsEl.style.display = 'block';
@@ -801,20 +957,23 @@ form.addEventListener('submit', function (e) {
     const adjustList = document.getElementById('adjustList');
     adjustBox.style.display = 'none';
 
+    const finalMonth = result.finalMonth;
+    const hitDate = result.reached ? monthDate(result.reachedMonth) : null;
+
     if (result.reached) {
-      headlineEl.textContent = `Goal reached in ${result.days} day${result.days === 1 ? '' : 's'}`;
-      let sub = `Estimated date: ${hitDate.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}`;
+      headlineEl.textContent = `Monthly goal reached in Month ${result.reachedMonth}`;
+      let sub = `By ${hitDate.toLocaleDateString(undefined, { year: 'numeric', month: 'long' })}, that month's earnings alone reached ${fmtMoney(finalMonth.monthlyEarned)} against a ${fmtMoney(goalDollars)}/month goal.`;
       if (goalDateVal) {
         const targetDate = new Date(goalDateVal + 'T00:00:00');
         const diffDays = Math.round((targetDate - hitDate) / 86400000);
-        if (diffDays > 0) sub += ` — ${diffDays} day${diffDays === 1 ? '' : 's'} ahead of your target date.`;
-        else if (diffDays < 0) sub += ` — ${Math.abs(diffDays)} day${Math.abs(diffDays) === 1 ? '' : 's'} past your target date. Consider more hours/days per week or a faster recruiting pace to close the gap.`;
-        else sub += ` — right on your target date.`;
+        if (diffDays > 0) sub += ` That's ${diffDays} day${diffDays === 1 ? '' : 's'} ahead of your target date.`;
+        else if (diffDays < 0) sub += ` That's ${Math.abs(diffDays)} day${Math.abs(diffDays) === 1 ? '' : 's'} past your target date — consider more hours/days per week or a faster recruiting pace to close the gap.`;
+        else sub += ` That's right on your target date.`;
       }
       subEl.textContent = sub;
     } else {
-      headlineEl.textContent = `Not reached within 12 months`;
-      subEl.textContent = `At this pace, the goal wasn't hit within the 12-month projection window. See adjustments below.`;
+      headlineEl.textContent = `Monthly goal not reached within 3 months`;
+      subEl.textContent = `At this pace, Month 3 closed at ${fmtMoney(finalMonth.monthlyEarned)} earned that month against a ${fmtMoney(goalDollars)}/month goal. See adjustments below.`;
       adjustBox.style.display = 'block';
       adjustList.innerHTML = `
         <li>Increase # new reps enrolled per day</li>
@@ -825,49 +984,36 @@ form.addEventListener('submit', function (e) {
       `;
     }
 
-    document.getElementById('statReps').textContent = fmtNum(result.personalReps);
-    document.getElementById('statTeam').textContent = fmtNum(result.teamMembers);
-    const totalVolume = result.teamAutoshipVolume * 45;
-    document.getElementById('statVolume').textContent = fmtNum(totalVolume);
+    document.getElementById('statReps').textContent = fmtNum(finalMonth.personalEnrolled);
+    document.getElementById('statTeam').textContent = fmtNum(finalMonth.teamMembers);
+    document.getElementById('statVolume').textContent = fmtNum(finalMonth.teamVolume);
 
     const methodNote = document.getElementById('methodNote');
     if (usePctMode) {
       methodNote.style.display = 'block';
-      methodNote.textContent = `Modeled realistically: ${Math.round(followFrac * 100)}% of new reps follow your example and build their own team. Of the rest, ~${Math.round(nonFollowerAutoshipFrac * 100)}% stay on 1 product autoship for personal/family use; everyone else who doesn't build enrolls with the minimum 1 product, one time.`;
+      methodNote.textContent = `Modeled realistically: ${Math.round(fracA * 100)}% build like you and keep recruiting, ${Math.round(fracB * 100)}% order at Gold and personally recruit 1 person one time, ${Math.round(fracC * 100)}% order at Silver and personally recruit 2 people one time — then those one-time recruits stop building too.`;
     } else {
       methodNote.style.display = 'none';
     }
 
-    const yourRank = matrixRank(productsOnAutoship, result.personalReps);
     const yourRankLine = document.getElementById('yourRankLine');
-    if (yourRank.rank) {
-      yourRankLine.textContent = `${yourRank.rank} — qualified on ${result.personalReps} personal reps at ${productsOnAutoship * 45} CV personal (pays through matrix level ${yourRank.levels})`;
+    if (finalMonth.rank) {
+      yourRankLine.textContent = `${finalMonth.rank} — ${finalMonth.personalEnrolled} personally enrolled, on ${finalMonth.runnerAutoship} product${finalMonth.runnerAutoship === 1 ? '' : 's'} autoship (pays through matrix level ${matrixLevelAccess(finalMonth.runnerAutoship, finalMonth.personalEnrolled).levels})`;
     } else {
-      yourRankLine.textContent = `Not yet rank-qualified — need at least 45 CV personal (1 product on autoship) to qualify as Silver.`;
+      yourRankLine.textContent = `Not yet rank-qualified — Silver needs 3+ personally enrolled.`;
     }
 
     const bd = document.getElementById('breakdown');
     bd.innerHTML = `
-      <div class="breakdown-row"><span>Fast Start Bonus (3x/week)</span><span class="amt">${fmtMoney(result.fastStart)}</span></div>
-      <div class="breakdown-row"><span>Coded Bonus (3x/week)</span><span class="amt">${fmtMoney(result.codedBonus)}</span></div>
-      <div class="breakdown-row"><span>Matrix Pay earned so far${result.monthlyCyclesCompleted === 0 ? ' (no monthly cycle closed yet)' : ''}</span><span class="amt">${fmtMoney(result.matrix)}</span></div>
-      <div class="breakdown-row"><span>Lifestyle Bonus earned so far${result.monthlyCyclesCompleted === 0 ? ' (no monthly cycle closed yet)' : ''}</span><span class="amt">${fmtMoney(result.lifestyle)}</span></div>
-      <div class="breakdown-row"><span>Total Estimated Earnings</span><span class="amt">${fmtMoney(result.cumulativeTotal)}</span></div>
+      <div class="breakdown-row"><span>Fast Start Bonus — this month</span><span class="amt">${fmtMoney(finalMonth.monthFastStart)}</span></div>
+      <div class="breakdown-row"><span>Coded Bonus — this month</span><span class="amt">${fmtMoney(finalMonth.monthCoded)}</span></div>
+      <div class="breakdown-row"><span>Matrix Pay — this month</span><span class="amt">${fmtMoney(finalMonth.matrixPay)}</span></div>
+      <div class="breakdown-row"><span>Lifestyle Bonus — this month</span><span class="amt">${fmtMoney(finalMonth.lifestyleBonus)}</span></div>
+      <div class="breakdown-row"><span>Total Earned This Month</span><span class="amt">${fmtMoney(finalMonth.monthlyEarned)}</span></div>
     `;
 
-    const runRateBox = document.getElementById('runRateBox');
-    const showRunRate = result.runRateMatrix > 0 || result.runRateLifestyle > 0;
-    runRateBox.style.display = showRunRate ? 'block' : 'none';
-    if (showRunRate) {
-      document.getElementById('runRateHeader').textContent = 'Projected Monthly Earnings';
-      document.getElementById('runRateContent').innerHTML = `
-        <div class="breakdown-row"><span>Projected Monthly Matrix Earnings</span><span class="amt">${fmtMoney(result.runRateMatrix)}/mo</span></div>
-        <div class="breakdown-row"><span>Projected Monthly Lifestyle Bonus Earnings</span><span class="amt">${fmtMoney(result.runRateLifestyle)}/mo</span></div>
-      `;
-    }
-
     const platinumBox = document.getElementById('platinumBox');
-    const pCount = result.platinumQualifiedPersonals;
+    const pCount = finalMonth.platinumQualifiedPersonals;
     platinumBox.style.display = pCount > 0 ? 'block' : 'none';
     if (pCount > 0) {
       document.getElementById('platinumCount').textContent = fmtNum(pCount);
@@ -887,12 +1033,31 @@ form.addEventListener('submit', function (e) {
       }
     }
 
+    // Month-by-month progress table — shown for EVERY simulated month, goal
+    // hit or not, so the trajectory is visible even before the goal lands.
+    const progressContent = document.getElementById('monthlyProgressContent');
+    progressContent.innerHTML = result.months.map((m) => {
+      const d = monthDate(m.monthNum);
+      const dateStr = d.toLocaleDateString(undefined, { year: 'numeric', month: 'short' });
+      const rankStr = m.rank || 'Not yet ranked';
+      const rowClass = m.reached ? 'reached' : 'not-reached';
+      const statusStr = m.reached ? 'Goal Reached' : 'Not Yet';
+      return `
+        <div class="month-row ${rowClass}">
+          <span class="m-label">Month ${m.monthNum}</span>
+          <span class="m-detail">${dateStr} — ${rankStr}, ${fmtNum(m.personalEnrolled)} personal enrolled, ${fmtNum(m.platinumQualifiedPersonals)} of 12/20 Platinums</span>
+          <span class="m-amt">${fmtMoney(m.monthlyEarned)} / ${fmtMoney(m.monthlyGoal)}</span>
+          <span class="m-status">${statusStr}</span>
+        </div>
+      `;
+    }).join('');
+
     if (typeof resultsEl.scrollIntoView === 'function') {
       resultsEl.scrollIntoView({ behavior: prefersReducedMotion ? 'auto' : 'smooth', block: 'start' });
     }
   };
 
-  if (prefersReducedMotion || result.days < 2) {
+  if (prefersReducedMotion || result.history.length < 2) {
     tickerEl.style.display = 'none';
     renderResults();
     return;
