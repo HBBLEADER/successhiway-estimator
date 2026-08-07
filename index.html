@@ -372,24 +372,29 @@
             Realistic Mix (3-tier team breakdown)
           </label>
         </div>
-        <span class="hint">Full Follow assumes every recruit works the exact pace you enter above, forever. Realistic Mix splits new reps into three real-world tiers — a small group who build like you, a larger group who order at Gold and recruit once, and the rest who order at Silver and recruit twice, then stop.</span>
+        <span class="hint">Full Follow assumes every recruit works the exact pace you enter above, forever. Realistic Mix splits new reps into four real-world tiers — a small group who build like you, a group who order at Gold and recruit once, a group who order at Silver and recruit twice, and a group who just use the products at member pricing and never personally recruit.</span>
       </div>
 
       <div class="field-grid" id="pctFields" style="display:none; margin-top:10px;">
         <div class="field">
           <label for="tierAPct">% Who Build Like You (Segment A)</label>
-          <input type="number" id="tierAPct" min="0" max="100" step="1" value="25">
+          <input type="number" id="tierAPct" min="0" max="100" step="1" value="20">
           <span class="hint">Duplicates your full activity pattern (days/week, reps/day, your order size) and keeps recruiting indefinitely.</span>
         </div>
         <div class="field">
           <label for="tierBPct">% Gold, One-Time Recruit (Segment B)</label>
-          <input type="number" id="tierBPct" min="0" max="100" step="1" value="40">
+          <input type="number" id="tierBPct" min="0" max="100" step="1" value="35">
           <span class="hint">Orders at Gold (2 products), personally recruits 1 person one time, then stops building.</span>
         </div>
         <div class="field">
           <label for="tierCPct">% Silver, Two-Time Recruit (Segment C)</label>
-          <input type="number" id="tierCPct" min="0" max="100" step="1" value="35">
+          <input type="number" id="tierCPct" min="0" max="100" step="1" value="25">
           <span class="hint">Orders at Silver (1 product), personally recruits 2 people one time, then stops building — mostly product users.</span>
+        </div>
+        <div class="field">
+          <label for="tierDPct">% Product Users, No Recruiting (Segment D)</label>
+          <input type="number" id="tierDPct" min="0" max="100" step="1" value="20">
+          <span class="hint">Orders at Silver (1 product) on signup, stays on 1-product monthly autoship, never personally recruits — earns through matrix levels 1-7 via spillover placed by their upline, no sponsoring required. Still counts toward Team, Volume, Coded Bonus, and Lifestyle GPV.</span>
         </div>
         <div class="field span-2" id="tierTotalHint" style="color: var(--warn);"></div>
       </div>
@@ -474,7 +479,7 @@
 // ============================================================
 function isWorkingDay(t, daysPerWeek) { return (t % 7) < daysPerWeek; }
 
-// Generalized growth engine, now modeling THREE real-world segments per new
+// Generalized growth engine, now modeling FOUR real-world segments per new
 // recruiting event instead of a simple follow/non-follow split:
 //   Segment A (fracA) — duplicates the Runner's full pattern (own order size,
 //     recruiting pace) and keeps recruiting indefinitely.
@@ -484,11 +489,18 @@ function isWorkingDay(t, daysPerWeek) { return (t % 7) < daysPerWeek; }
 //   Segment C (fracC) — orders at Silver (1 product), personally recruits 2
 //     people ONE TIME, then stops building. Those recruits are terminal and
 //     order the minimum 1 product each.
+//   Segment D (fracD) — orders at Silver (1 product) on signup, stays on
+//     1-product monthly autoship, NEVER personally recruits. Pure product
+//     user/member — earns through matrix levels 1-7 via spillover placed by
+//     an upline builder, no sponsoring required. Still counts fully toward
+//     Team, Volume, Coded Bonus (as a downline member in someone else's leg),
+//     and Lifestyle GPV.
 // Only Segment A continues recruiting (drives F, future growth capacity).
 // Segments B and C still add real one-time headcount and volume (via the
 // "cluster" they bring in), they just don't compound further themselves.
+// Segment D adds headcount/volume but never adds to cluster beyond itself.
 //
-//   P(t)  = total subtree headcount (everyone: A, B, C, and their one-timers)
+//   P(t)  = total subtree headcount (everyone: A, B, C, D, and their one-timers)
 //   F(t)  = "active recruiter" headcount driving future growth (Segment A only)
 //   EV(t) = cumulative enrollment-order product volume (for Fast Start / Coded Bonus)
 // The Runner's own autoship level is no longer a fixed input — it auto-
@@ -505,21 +517,23 @@ function runnerAutoshipAt(activePersonalReps) {
 
 // Total new headcount added per raw recruiting event: the direct enrollee,
 // plus Segment B's one recruit and Segment C's two recruits (weighted by
-// their share of the population).
+// their share of the population). Segment D contributes exactly itself (1),
+// already covered by the base "1" — it never adds further headcount.
 function clusterMultiplier(fracB, fracC) {
   return 1 + fracB * 1 + fracC * 2;
 }
 
-function buildCurves(maxT, daysPerWeek, newRepsPerDay, fracA, fracB, fracC, productsOnSignup) {
+function buildCurves(maxT, daysPerWeek, newRepsPerDay, fracA, fracB, fracC, fracD, productsOnSignup, productsD) {
   const P = new Array(maxT + 1).fill(0);
   const F = new Array(maxT + 1).fill(0);
   const EV = new Array(maxT + 1).fill(0);
   const cluster = clusterMultiplier(fracB, fracC);
 
-  // Volume from the direct enrollee's own order, blended across the three
-  // segments (A buys the Runner's order size, B buys Gold/2, C buys Silver/1),
-  // plus the minimum 1-product order from each one-time recruit B/C brings in.
-  const evPerUnitCluster = fracA * productsOnSignup + fracB * 2 + fracC * 1
+  // Volume from the direct enrollee's own order, blended across the four
+  // segments (A buys the Runner's order size, B buys Gold/2, C buys Silver/1,
+  // D buys their own chosen order size), plus the minimum 1-product order
+  // from each one-time recruit B/C brings in.
+  const evPerUnitCluster = fracA * productsOnSignup + fracB * 2 + fracC * 1 + fracD * productsD
     + (fracB * 1 + fracC * 2) * 1;
 
   P[0] = 1;
@@ -628,9 +642,9 @@ function codeTierMinAutoship(tier) {
 // cumulative total would misrepresent a monthly-income claim. Stops at the
 // first month where that month's earned income meets/exceeds the goal, capped
 // at 3 months (see comment above simulate()). A snapshot is recorded for every simulated month either way.
-function simulate({ goalDollars, daysPerWeek, newRepsPerDay, productsOnSignup, fracA = 1, fracB = 0, fracC = 0, capMonths = 3 }) {
+function simulate({ goalDollars, daysPerWeek, newRepsPerDay, productsOnSignup, fracA = 1, fracB = 0, fracC = 0, fracD = 0, productsD = 1, capMonths = 3 }) {
   const capDays = capMonths * 30;
-  const { P, F, EV } = buildCurves(capDays, daysPerWeek, newRepsPerDay, fracA, fracB, fracC, productsOnSignup);
+  const { P, F, EV } = buildCurves(capDays, daysPerWeek, newRepsPerDay, fracA, fracB, fracC, fracD, productsOnSignup, productsD);
   const Q = buildPersonalRecruitCurve(capDays, daysPerWeek, newRepsPerDay);
   const legCohorts = [];
   let ordinalCounter = 0;
@@ -642,9 +656,9 @@ function simulate({ goalDollars, daysPerWeek, newRepsPerDay, productsOnSignup, f
   const cluster = clusterMultiplier(fracB, fracC);
 
   // Blended per-recruiting-event product volume, matching buildCurves' EV[0]
-  // — the direct enrollee's own order across the three segments, plus the
+  // — the direct enrollee's own order across the four segments, plus the
   // one-time recruits Segments B and C bring in.
-  const evPerUnitCluster = fracA * productsOnSignup + fracB * 2 + fracC * 1
+  const evPerUnitCluster = fracA * productsOnSignup + fracB * 2 + fracC * 1 + fracD * productsD
     + (fracB * 1 + fracC * 2) * 1;
 
   const teamSizeAt = (day) =>
@@ -657,13 +671,13 @@ function simulate({ goalDollars, daysPerWeek, newRepsPerDay, productsOnSignup, f
   const currentRunnerAutoship = () => runnerAutoshipAt(ordinalCounter);
 
   // Team-wide average autoship level / Matrix-dollar rate, blended across all
-  // three segments plus their one-time recruits (Segment A tracks the
-  // Runner's own dynamic level; B is fixed at Gold/2; C and all one-time
-  // recruits are fixed at the minimum 1 product), weighted by their share of
-  // total cluster headcount.
+  // four segments plus their one-time recruits (Segment A tracks the
+  // Runner's own dynamic level; B is fixed at Gold/2; D uses its own chosen
+  // order size; C and all one-time recruits are fixed at the minimum 1
+  // product), weighted by their share of total cluster headcount.
   const blendedAutoshipLevel = () => {
     const runnerLevel = currentRunnerAutoship();
-    const total = fracA * runnerLevel + fracB * 2 + fracC * 1 + (fracB * 1 + fracC * 2) * 1;
+    const total = fracA * runnerLevel + fracB * 2 + fracC * 1 + fracD * productsD + (fracB * 1 + fracC * 2) * 1;
     return total / cluster;
   };
   const blendedMatrixDollarRate = () => {
@@ -672,7 +686,7 @@ function simulate({ goalDollars, daysPerWeek, newRepsPerDay, productsOnSignup, f
     // ($1 Silver / $2 Gold / $4 Platinum, per order — not per product), so it
     // must NOT be multiplied by runnerLevel again here.
     const total = fracA * matrixRateForCV(runnerLevel)
-      + fracB * matrixRateForCV(2) + fracC * matrixRateForCV(1)
+      + fracB * matrixRateForCV(2) + fracC * matrixRateForCV(1) + fracD * matrixRateForCV(productsD)
       + (fracB * 1 + fracC * 2) * matrixRateForCV(1);
     return total / cluster;
   };
@@ -853,12 +867,13 @@ function syncTierTotal() {
   const a = parseFloat(document.getElementById('tierAPct').value) || 0;
   const b = parseFloat(document.getElementById('tierBPct').value) || 0;
   const c = parseFloat(document.getElementById('tierCPct').value) || 0;
-  const total = a + b + c;
+  const d = parseFloat(document.getElementById('tierDPct').value) || 0;
+  const total = a + b + c + d;
   tierTotalHintEl.textContent = Math.round(total) === 100
     ? ''
-    : `These three should add up to 100% — currently ${Math.round(total)}%.`;
+    : `These four should add up to 100% — currently ${Math.round(total)}%.`;
 }
-['tierAPct', 'tierBPct', 'tierCPct'].forEach((id) => {
+['tierAPct', 'tierBPct', 'tierCPct', 'tierDPct'].forEach((id) => {
   document.getElementById(id).addEventListener('input', syncTierTotal);
 });
 syncTierTotal();
@@ -899,9 +914,10 @@ document.getElementById('clearBtn').addEventListener('click', () => {
   form.querySelectorAll('select').forEach((el) => { el.selectedIndex = 0; });
   document.getElementById('methodFull').checked = true;
   pctFieldsEl.style.display = 'none';
-  document.getElementById('tierAPct').value = '25';
-  document.getElementById('tierBPct').value = '40';
-  document.getElementById('tierCPct').value = '35';
+  document.getElementById('tierAPct').value = '20';
+  document.getElementById('tierBPct').value = '35';
+  document.getElementById('tierCPct').value = '25';
+  document.getElementById('tierDPct').value = '20';
   syncTierTotal();
   syncGoalChips();
 
@@ -941,20 +957,23 @@ form.addEventListener('submit', function (e) {
   const productsOnSignup = parseInt(document.getElementById('productsOnSignup').value);
 
   const usePctMode = document.getElementById('methodPct').checked;
-  let fracA = 1, fracB = 0, fracC = 0;
+  let fracA = 1, fracB = 0, fracC = 0, fracD = 0;
+  const productsD = 1; // Segment D kept simple at 1 product
   if (usePctMode) {
     const aRaw = Math.max(0, parseFloat(document.getElementById('tierAPct').value) || 0);
     const bRaw = Math.max(0, parseFloat(document.getElementById('tierBPct').value) || 0);
     const cRaw = Math.max(0, parseFloat(document.getElementById('tierCPct').value) || 0);
-    const total = aRaw + bRaw + cRaw;
+    const dRaw = Math.max(0, parseFloat(document.getElementById('tierDPct').value) || 0);
+    const total = aRaw + bRaw + cRaw + dRaw;
     if (total > 0) {
       fracA = aRaw / total;
       fracB = bRaw / total;
       fracC = cRaw / total;
+      fracD = dRaw / total;
     }
   }
 
-  const result = simulate({ goalDollars, daysPerWeek, newRepsPerDay, productsOnSignup, fracA, fracB, fracC, capMonths: 3 });
+  const result = simulate({ goalDollars, daysPerWeek, newRepsPerDay, productsOnSignup, fracA, fracB, fracC, fracD, productsD, capMonths: 3 });
 
   const entryDate = new Date();
   const monthDate = (monthNum) => new Date(entryDate.getTime() + monthNum * 30 * 86400000);
@@ -1004,7 +1023,7 @@ form.addEventListener('submit', function (e) {
     const methodNote = document.getElementById('methodNote');
     if (usePctMode) {
       methodNote.style.display = 'block';
-      methodNote.textContent = `Modeled realistically: ${Math.round(fracA * 100)}% build like you and keep recruiting, ${Math.round(fracB * 100)}% order at Gold and personally recruit 1 person one time, ${Math.round(fracC * 100)}% order at Silver and personally recruit 2 people one time — then those one-time recruits stop building too.`;
+      methodNote.textContent = `Modeled realistically: ${Math.round(fracA * 100)}% build like you and keep recruiting, ${Math.round(fracB * 100)}% order at Gold and personally recruit 1 person one time, ${Math.round(fracC * 100)}% order at Silver and personally recruit 2 people one time, ${Math.round(fracD * 100)}% just use the products at member pricing and never personally recruit — then those one-time recruits stop building too, and product users stay flat.`;
     } else {
       methodNote.style.display = 'none';
     }
