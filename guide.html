@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Business Income Estimator Guide — GreatLife Worldwide</title>
+<style>
+  :root {
+    --navy-900: #16233d;
+    --navy-800: #1f3357;
+    --navy-700: #2c4676;
+    --paper: #f6f4ef;
+    --paper-dim: #ece8de;
+    --brass: #b6862c;
+    --brass-light: #d9ab4e;
+    --ink: #23282f;
+    --ink-dim: #5c6570;
+    --line: #d8d2c2;
+    --font-display: "Roboto Slab", Georgia, serif;
+    --font-body: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-body);
+  }
+  .topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 22px;
+    background: linear-gradient(160deg, var(--navy-900) 0%, var(--navy-800) 55%, var(--navy-700) 100%);
+    color: #fff;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .topbar .brand {
+    font-family: var(--font-display);
+    font-size: 1.05rem;
+    font-weight: 700;
+  }
+  .topbar .brand small {
+    display: block;
+    font-family: var(--font-body);
+    font-weight: 400;
+    font-size: 0.75rem;
+    color: var(--brass-light);
+    margin-top: 2px;
+  }
+  .topbar a.live-link {
+    color: #fff;
+    text-decoration: none;
+    background: var(--brass);
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    white-space: nowrap;
+    transition: background 0.15s ease;
+  }
+  .topbar a.live-link:hover { background: var(--brass-light); }
+  .viewer-wrap {
+    height: 85vh;
+    width: 100%;
+    background: var(--paper-dim);
+  }
+  #pdf-frame {
+    border: none;
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+  .fallback {
+    padding: 18px 22px;
+    font-size: 0.85rem;
+    color: var(--ink-dim);
+    text-align: center;
+  }
+  .fallback a { color: var(--navy-700); }
+  .bottom-cta {
+    text-align: center;
+    padding: 34px 22px 42px;
+    background: var(--paper);
+  }
+  .bottom-cta h2 {
+    font-family: var(--font-display);
+    color: var(--navy-800);
+    font-size: 1.3rem;
+    margin: 0 0 6px;
+  }
+  .bottom-cta p {
+    color: var(--ink-dim);
+    font-size: 0.9rem;
+    margin: 0 0 18px;
+  }
+  .bottom-cta a.live-link-big {
+    display: inline-block;
+    color: #fff;
+    text-decoration: none;
+    background: var(--brass);
+    padding: 14px 34px;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: background 0.15s ease;
+  }
+  .bottom-cta a.live-link-big:hover { background: var(--brass-light); }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">GreatLife Worldwide<small>Business Income Estimator — Sample Run &amp; Guide</small></div>
+  <a class="live-link" href="https://estimator.successhiway.com" target="_blank" rel="noopener">Open the Live Estimator &rarr;</a>
+</div>
+
+<div class="viewer-wrap">
+  <iframe id="pdf-frame"
+    src="https://mozilla.github.io/pdf.js/web/viewer.html?file=%2Fguide%2FBusiness_Income_Estimator_Guide.pdf"
+    title="Business Income Estimator Guide">
+  </iframe>
+</div>
+
+<p class="fallback">
+  Guide not displaying? <a href="/guide/Business_Income_Estimator_Guide.pdf" target="_blank" rel="noopener">Open the PDF directly</a>.
+</p>
+
+<div class="bottom-cta">
+  <h2>Ready to Run Your Own Numbers?</h2>
+  <p>Try the live Business Income Estimator — free, no signup required.</p>
+  <a class="live-link-big" href="https://estimator.successhiway.com" target="_blank" rel="noopener">Open the Live Estimator &rarr;</a>
+</div>
+
+</body>
+</html>
