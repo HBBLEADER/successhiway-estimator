@@ -389,13 +389,13 @@
         <div class="field span-2" id="tierTotalHint" style="color: var(--warn);"></div>
         <div class="field">
           <label for="fracBOngoingPct">Of Segment B, % that keep recruiting (~2/mo) instead of stopping</label>
-          <input type="number" id="fracBOngoingPct" min="0" max="100" step="1" value="0">
-          <span class="hint">This slice still hits their one-time Gold cluster (1 recruit) like the rest of Segment B, then keeps personally recruiting at roughly 2 people a month afterward instead of going flat — until they hit their own next Coded rank or the projection ends. The rest of Segment B keeps the original one-time-then-stop behavior.</span>
+          <input type="number" id="fracBOngoingPct" min="0" max="100" step="1" value="25">
+          <span class="hint">This slice still hits their one-time Gold cluster (1 recruit) like the rest of Segment B, then keeps personally recruiting at roughly 2 people a month afterward instead of going flat — until they hit their own next Coded rank or the projection ends. The rest of Segment B keeps the original one-time-then-stop behavior. Defaults to 25% — a real team has some steady mid-tier recruiters, not just a one-time burst from everyone.</span>
         </div>
         <div class="field">
           <label for="fracCOngoingPct">Of Segment C, % that keep recruiting (~2/mo) instead of stopping</label>
-          <input type="number" id="fracCOngoingPct" min="0" max="100" step="1" value="0">
-          <span class="hint">This slice still hits their one-time Silver cluster (2 recruits) like the rest of Segment C, then keeps personally recruiting at roughly 2 people a month afterward instead of going flat. The rest of Segment C keeps the original one-time-then-stop behavior. Defaults to 0% — dial this up to see how a more persistent mid-tier changes your numbers.</span>
+          <input type="number" id="fracCOngoingPct" min="0" max="100" step="1" value="15">
+          <span class="hint">This slice still hits their one-time Silver cluster (2 recruits) like the rest of Segment C, then keeps personally recruiting at roughly 2 people a month afterward instead of going flat. The rest of Segment C keeps the original one-time-then-stop behavior. Defaults to 15% — a smaller share than Segment B, since these are mostly product users, but not zero. Dial this up or down to see how a more or less persistent mid-tier changes your numbers.</span>
         </div>
       </div>
 
@@ -612,17 +612,42 @@ function buildPersonalRecruitCurve(maxT, daysPerWeek, newRepsPerDay) {
   return Q;
 }
 
-// Of the Runner's own personally-enrolled reps, how many have themselves become
-// Platinum-qualified (9+ of their OWN personally-enrolled reps, which — under
-// the auto-upgrade model — also means they're on 3-product autoship) as of
-// the given day? This is the Diamond / International Diamond pipeline metric.
-function countPlatinumQualifiedPersonals(day, legCohorts, Q) {
-  // Only named Leaders (isLeader) run a full duplicating pace deep enough to
-  // plausibly reach Platinum leadership status themselves — ordinary B/C/D
-  // personal enrollees recruit once (or never) and stop, so they're excluded.
+// An ongoing-recruiting leg's (Segment B/C with the "keep recruiting" slider
+// on) OWN personal-recruit count over time — distinct from P(t), which tracks
+// the size of their whole downline subtree. Starts at their one-time cluster
+// size, then grows linearly at the ongoing monthly rate. This is what actually
+// determines whether THAT person crosses 9 personal recruits and reaches
+// their own Platinum Coded Bonus Rank.
+function buildOwnRecruitCurve(maxT, initialRecruits, monthlyRate) {
+  const OQ = new Array(maxT + 1).fill(0);
+  const dailyRate = monthlyRate / 30;
+  for (let t = 0; t <= maxT; t++) OQ[t] = initialRecruits + dailyRate * t;
+  return OQ;
+}
+
+// Of everyone the RUNNER personally recruited, how many have themselves
+// become Platinum-Coded-Bonus-Rank qualified (9+ of THEIR OWN personally-
+// enrolled reps — which, under the auto-upgrade model, also means they're on
+// 3-product autoship) as of the given day? Per Carl's clarification, this —
+// not a hand-picked "Leaders" headcount — is what actually counts toward the
+// Runner's Diamond (12) / International Diamond (20) pipeline.
+//
+// Every personally-enrolled branch is checked against its OWN real recruiting
+// curve, by kind: named Leaders use the Runner's own pace (Q); ongoing-
+// recruiting Segment B/C members use their own one-time-cluster-plus-ongoing-
+// rate curve. Flat (one-time-then-stop) Segment B/C and all of Segment D are
+// structurally capped at 1-2 personal recruits ever, so they can never reach
+// 9 — excluded correctly by the math itself, not by a special case or a
+// manually-guessed "Leader" label.
+function countPlatinumQualifiedPersonals(day, legCohorts, Q, ongoingBOwnQ, ongoingCOwnQ) {
   return legCohorts.reduce((sum, leg) => {
-    if (leg.day > day || !leg.isLeader) return sum;
-    const ownPersonalCount = Q[day - leg.day];
+    if (leg.day > day) return sum;
+    const t = day - leg.day;
+    let ownPersonalCount;
+    if (leg.kind === 'leader') ownPersonalCount = Q[t];
+    else if (leg.kind === 'ongoingB') ownPersonalCount = ongoingBOwnQ[t];
+    else if (leg.kind === 'ongoingC') ownPersonalCount = ongoingCOwnQ[t];
+    else return sum; // flat B/C and Segment D can never reach 9 — no curve needed
     return ownPersonalCount >= 9 ? sum + leg.count : sum;
   }, 0);
 }
@@ -718,6 +743,11 @@ function simulate({ goalDollars, daysPerWeek, newRepsPerDay, productsOnSignup, l
   const flatCurves = buildNonLeaderCurve(capDays, fracB * (1 - fracBOngoing), fracC * (1 - fracCOngoing), fracD, productsD);
   const ongoingBCurves = buildOngoingSegmentCurve(capDays, /* rootProducts */ 2, /* initialRecruits */ 1, /* initialRecruitProducts */ 1, ONGOING_MONTHLY_RATE, nonLeaderCurves);
   const ongoingCCurves = buildOngoingSegmentCurve(capDays, /* rootProducts */ 1, /* initialRecruits */ 2, /* initialRecruitProducts */ 1, ONGOING_MONTHLY_RATE, nonLeaderCurves);
+  // OWN personal-recruit count (not subtree size) for ongoing-B/C members —
+  // used to check whether THAT person individually crosses 9 recruits and
+  // reaches their own Platinum Coded Bonus Rank (see countPlatinumQualifiedPersonals).
+  const ongoingBOwnQ = buildOwnRecruitCurve(capDays, 1, ONGOING_MONTHLY_RATE);
+  const ongoingCOwnQ = buildOwnRecruitCurve(capDays, 2, ONGOING_MONTHLY_RATE);
   const leaderCurves = buildLeaderDownlineCurve(capDays, daysPerWeek, newRepsPerDay, productsOnSignup, nonLeaderCurves);
   const Q = buildPersonalRecruitCurve(capDays, daysPerWeek, newRepsPerDay);
 
@@ -940,7 +970,7 @@ function simulate({ goalDollars, daysPerWeek, newRepsPerDay, productsOnSignup, l
       cumulativeTotal += lifestyleBonus; allLifestyle += lifestyleBonus;
 
       const monthEarned = monthFastStart + monthCoded + matrixPay + lifestyleBonus;
-      const pCount = countPlatinumQualifiedPersonals(day, legCohorts, Q);
+      const pCount = countPlatinumQualifiedPersonals(day, legCohorts, Q, ongoingBOwnQ, ongoingCOwnQ);
 
       months.push({
         monthNum, day,
@@ -1086,8 +1116,8 @@ document.getElementById('clearBtn').addEventListener('click', () => {
   document.getElementById('tierBPct').value = '39';
   document.getElementById('tierCPct').value = '39';
   document.getElementById('tierDPct').value = '22';
-  document.getElementById('fracBOngoingPct').value = '0';
-  document.getElementById('fracCOngoingPct').value = '0';
+  document.getElementById('fracBOngoingPct').value = '25';
+  document.getElementById('fracCOngoingPct').value = '15';
   syncTierTotal();
   syncGoalChips();
 
