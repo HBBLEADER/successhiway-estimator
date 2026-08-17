@@ -334,8 +334,8 @@
           <input type="number" id="daysPerWeek" min="1" max="7" step="1" value="5" required>
         </div>
         <div class="field">
-          <label for="hoursPerDay"># Hours You'll Work Per Day</label>
-          <input type="number" id="hoursPerDay" min="0.5" step="0.5" value="2" required>
+          <label for="hoursPerWeek"># Hours You'll Work Per Week</label>
+          <input type="number" id="hoursPerWeek" min="0.5" step="0.5" value="10" required>
         </div>
         <div class="field">
           <label for="callsPerDay"># Calls / Contacts Per Day</label>
@@ -343,8 +343,9 @@
           <span class="hint">Your daily outreach pace — shown alongside your results.</span>
         </div>
         <div class="field">
-          <label for="newRepsPerDay"># New Reps Enrolled Per Day</label>
-          <input type="number" id="newRepsPerDay" min="0" step="1" value="1" required>
+          <label for="newRepsPerWeek"># New Reps Enrolled Per Week</label>
+          <input type="number" id="newRepsPerWeek" min="0" step="1" value="5" required>
+          <span class="hint">Almost no one recruits daily — this is the pace most Runners and prospects can honestly picture. We spread it across your working days internally.</span>
         </div>
         <div class="field">
           <label for="productsOnSignup">Products Per Enrollment Order</label>
@@ -362,41 +363,26 @@
 
       <div class="field-grid" id="pctFields" style="margin-top:18px;">
         <div class="field span-2">
-          <label for="numLeaders"># of Leaders that Follow You (Segment A)</label>
-          <input type="number" id="numLeaders" min="0" step="1" value="5">
-          <span class="hint">A small, fixed headcount of people who follow you — duplicating your full activity pattern (days/week, reps/day, your order size) and recruiting indefinitely — not a percentage. Real teams are usually built by 5-7 leaders like this, not by a random slice of everyone.</span>
-        </div>
-        <div class="field span-2">
-          <label>When each Leader Emerges</label>
-          <span class="hint">Roughly what DAY into the projection each leader becomes active — not who found them. Leaders can come from anywhere in a growing downline (a downline member's own recruit, a leader another leader found, not just someone you personally enrolled), so this only asks when, not from where.</span>
-          <div id="leaderOrdinalsRow" style="display:flex; flex-wrap:wrap; gap:10px; margin-top:6px;"></div>
+          <label for="targetPersonallyEnrolled">Target # Personally Enrolled Who Duplicate You</label>
+          <input type="number" id="targetPersonallyEnrolled" min="0" step="1" value="24">
+          <span class="hint">Not a starting headcount — a target. These are the FIRST this many people you personally enroll (filled in naturally at your real recruiting pace, not a guessed date), each one following your own activity pattern and rank progression indefinitely. Set this high enough to realistically produce the personal Platinums a higher rank needs — e.g. 24 gives real-world room to develop 20 personal Platinums toward International Diamond, since not everyone who starts duplicating will stick with it. Once you personally enroll this many, everyone after that falls into the Gold/Silver/Product-User mix below instead.</span>
         </div>
         <div class="field">
-          <label for="tierBPct">% Gold, One-Time Recruit (Segment B)</label>
+          <label for="tierBPct">% Gold, Ongoing Recruiter (Segment B)</label>
           <input type="number" id="tierBPct" min="0" max="100" step="1" value="39">
-          <span class="hint">Of everyone else you personally enroll — orders at Gold (2 products), personally recruits 1 person one time, then stops building.</span>
+          <span class="hint">Of everyone else you personally enroll — starts at Gold, 2-Product initial order, then recruits 2 people at signup, then keeps recruiting ~2 people a month going forward. Their own product order upgrades with their own rank as their personal count grows (Silver→Gold→Platinum), same as yours.</span>
         </div>
         <div class="field">
-          <label for="tierCPct">% Silver, Two-Time Recruit (Segment C)</label>
+          <label for="tierCPct">% Silver, Ongoing Recruiter (Segment C)</label>
           <input type="number" id="tierCPct" min="0" max="100" step="1" value="39">
-          <span class="hint">Of everyone else you personally enroll — orders at Silver (1 product), personally recruits 2 people one time, then stops building — mostly product users.</span>
+          <span class="hint">Of everyone else you personally enroll — starts Silver order of 1 Product, personally recruits 2 people at signup, then keeps recruiting ~1 person a week going forward. Their own product order upgrades with their own rank as their personal count grows (Silver→Gold→Platinum), same as yours.</span>
         </div>
         <div class="field">
           <label for="tierDPct">% Product Users, No Recruiting (Segment D)</label>
           <input type="number" id="tierDPct" min="0" max="100" step="1" value="22">
-          <span class="hint">Of everyone else you personally enroll — orders at Silver (1 product) on signup, stays on 1-product monthly autoship, never personally recruits — earns through matrix levels 1-7 via spillover placed by their upline, no sponsoring required. Still counts toward Team, Volume, Coded Bonus, and Lifestyle GPV. If Gold + Silver don't use up the full 100%, this is typically where the rest lands — but the choice is yours.</span>
+          <span class="hint">Of everyone else you personally enroll — orders at Silver (1 product) on signup, stays on 1-product monthly autoship, never personally recruits — basically rep-customers. Earns through matrix levels 1-7 via spillover placed by their upline, no sponsoring required. Still counts toward Team, Volume, Coded Bonus, and Lifestyle GPV. If Gold + Silver don't use up the full 100%, this is typically where the rest lands — but the choice is yours.</span>
         </div>
         <div class="field span-2" id="tierTotalHint" style="color: var(--warn);"></div>
-        <div class="field">
-          <label for="fracBOngoingPct">Of Segment B, % that keep recruiting (~2/mo) instead of stopping</label>
-          <input type="number" id="fracBOngoingPct" min="0" max="100" step="1" value="25">
-          <span class="hint">This slice still hits their one-time Gold cluster (1 recruit) like the rest of Segment B, then keeps personally recruiting at roughly 2 people a month afterward instead of going flat — until they hit their own next Coded rank or the projection ends. The rest of Segment B keeps the original one-time-then-stop behavior. Defaults to 25% — a real team has some steady mid-tier recruiters, not just a one-time burst from everyone.</span>
-        </div>
-        <div class="field">
-          <label for="fracCOngoingPct">Of Segment C, % that keep recruiting (~2/mo) instead of stopping</label>
-          <input type="number" id="fracCOngoingPct" min="0" max="100" step="1" value="15">
-          <span class="hint">This slice still hits their one-time Silver cluster (2 recruits) like the rest of Segment C, then keeps personally recruiting at roughly 2 people a month afterward instead of going flat. The rest of Segment C keeps the original one-time-then-stop behavior. Defaults to 15% — a smaller share than Segment B, since these are mostly product users, but not zero. Dial this up or down to see how a more or less persistent mid-tier changes your numbers.</span>
-        </div>
       </div>
 
       <div class="btn-row">
@@ -464,7 +450,7 @@
     </div>
 
     <div class="disclaimer">
-      <strong>This is a projection tool, not an income guarantee.</strong> Your goal is evaluated as a MONTHLY income figure — each simulated month's own earnings (not a running total added up across months) is what's checked against your goal, matching how the compensation plan actually resets and pays out each month. This projection runs a maximum of 3 months. That limit is intentional: Coded Bonus pays to infinite depth with no generational limit, so its growth compounds very quickly as a team builds — which is a real, accurate feature of the compensation plan, not a flaw in this tool. Capping the projection at 3 months keeps the numbers meaningful and avoids projecting so far out that the math stops being a realistic reflection of early team-building activity. It's also where most Runners realistically hit their first goal. This tool models a grounded, real-world breakdown: a small, explicitly-placed handful of Leaders that Follow You — personally recruiting at your pace indefinitely (real teams are usually built by a handful of leaders like this, not by everyone duplicating equally), plus everyone else you personally enroll split into a group who order at Gold and personally recruit once before stopping, and a group who order at Silver and personally recruit twice (or never) before stopping. Real teams vary widely based on individual effort. This tool models only your own personal activity and the activity of your personally-enrolled downline — it does not model spillover volume from upline sponsoring efforts anywhere, including Matrix Pay, since company-wide spillover can't be predicted for an individual projection. No income claims or guarantees are made or implied. Please refer to the official GreatLife Compensation Plan for complete details.
+      <strong>This is a projection tool, not an income guarantee.</strong> Your goal is evaluated as a MONTHLY income figure — each simulated month's own earnings (not a running total added up across months) is what's checked against your goal, matching how the compensation plan actually resets and pays out each month. This projection runs a maximum of 3 months. That limit is intentional: Coded Bonus pays to infinite depth with no generational limit, so its growth compounds very quickly as a team builds — which is a real, accurate feature of the compensation plan, not a flaw in this tool. Capping the projection at 3 months keeps the numbers meaningful and avoids projecting so far out that the math stops being a realistic reflection of early team-building activity. It's also where most Runners realistically hit their first goal. This tool models a grounded, real-world breakdown: a target number of your personal enrollments who duplicate your own recruiting pace and rank progression (real teams are usually built by a handful of committed duplicators like this, not by everyone duplicating equally), plus everyone else you personally enroll split into a group who start at Gold and keep recruiting ~2/month, and a group who start at Silver and keep recruiting ~1/week — both upgrading their own product order as their own rank climbs, plus a group of rep-customers who never recruit. Real teams vary widely based on individual effort. This tool models only your own personal activity and the activity of your personally-enrolled downline — it does not model spillover volume from upline sponsoring efforts anywhere, including Matrix Pay, since company-wide spillover can't be predicted for an individual projection. No income claims or guarantees are made or implied. Please refer to the official GreatLife Compensation Plan for complete details.
     </div>
   </div>
 </div>
@@ -480,24 +466,31 @@
 function isWorkingDay(t, daysPerWeek) { return (t % 7) < daysPerWeek; }
 
 // Growth model: two populations per Runner personal enrollment.
-//   Leaders (a fixed, explicitly-placed headcount, not a %) — personally
-//     recruit at the Runner's own full pace, indefinitely. Their downline
-//     runs the same realistic B/C/D mix below (see buildLeaderDownlineCurve).
-//   Segment B (fracB) — orders at Gold (2 products), personally recruits 1
-//     person ONE TIME, then stops building. That one recruit is terminal
-//     (never recruits further) and orders the minimum 1 product.
-//   Segment C (fracC) — orders at Silver (1 product), personally recruits 2
-//     people ONE TIME, then stops building. Those recruits are terminal and
-//     order the minimum 1 product each.
+//   Duplicators (targetPersonallyEnrolled — a target headcount, not a %) —
+//     the FIRST this-many people the Runner personally enrolls, filled in at
+//     the Runner's real recruiting pace (not a guessed date). Each one
+//     personally recruits at the Runner's own full pace indefinitely, and
+//     their own product/rank level auto-upgrades based on THEIR OWN personal
+//     recruit count (see leaderAutoshipLevel/leaderMatrixDollarRate). Their
+//     downline runs the same realistic B/C/D mix below (see
+//     buildLeaderDownlineCurve). Once the target is reached, everyone else
+//     the Runner personally enrolls falls into Segments B/C/D below.
+//   Segment B (fracB) — starts at Gold (2 products), personally recruits 1
+//     person at signup, then keeps recruiting ~2 people/week indefinitely.
+//     Own product order auto-upgrades with own rank as personal count grows
+//     (see buildOngoingSegmentCurve / ongoingBOwnQ).
+//   Segment C (fracC) — starts at Silver (1 product), personally recruits 2
+//     people at signup, then keeps recruiting ~1 person/week indefinitely.
+//     Own product order auto-upgrades with own rank as personal count grows
+//     (see buildOngoingSegmentCurve / ongoingCOwnQ).
 //   Segment D (fracD) — orders at Silver (1 product) on signup, stays on
 //     1-product monthly autoship, NEVER personally recruits. Pure product
-//     user/member — earns through matrix levels 1-7 via spillover placed by
-//     an upline builder, no sponsoring required. Still counts fully toward
-//     Team, Volume, Coded Bonus (as a downline member in someone else's leg),
-//     and Lifestyle GPV.
-// Segments B and C add real one-time headcount and volume (via the
-// "cluster" they bring in), but don't compound further themselves. Segment D
-// adds headcount/volume but never adds to cluster beyond itself.
+//     user/member (rep-customer) — earns through matrix levels 1-7 via
+//     spillover placed by an upline builder, no sponsoring required. Still
+//     counts fully toward Team, Volume, Coded Bonus (as a downline member in
+//     someone else's leg), and Lifestyle GPV.
+// Segment D adds headcount/volume but never compounds — it's the only truly
+// flat population left in this model.
 //
 //   EV(t) = cumulative enrollment-order product volume (for Fast Start / Coded Bonus)
 // The Runner's own autoship level is no longer a fixed input — it auto-
@@ -566,33 +559,34 @@ function buildLeaderDownlineCurve(maxT, daysPerWeek, newRepsPerDay, productsOnSi
   return { P, EV };
 }
 
-// A Segment B or C member who keeps recruiting after their initial one-time
-// cluster instead of going flat. They still hit their guaranteed initial
-// push (B: 1 recruit at signup, C: 2 recruits at signup — unchanged from the
-// flat behavior) at t=0, but from day 1 onward they ALSO personally recruit
-// at a steady ~monthlyOngoingRate/month, indefinitely (bounded only by the
-// same 3-month/goal-stop window everyone else runs on — no separate cutoff).
+// EVERY Segment B and Segment C member keeps recruiting indefinitely — there
+// is no more "recruits once then stops forever" behavior. They still hit
+// their guaranteed initial push (B: 2 recruits at signup, C: 2 recruits at
+// signup) at t=0, and from day 1 onward they ALSO personally recruit at a
+// steady dailyOngoingRate every day, indefinitely (bounded only by the same
+// 3-month/goal-stop window everyone else runs on — no separate cutoff).
+// dailyOngoingRate is pre-converted by the caller from whatever cadence Carl
+// specified (B is a monthly figure /30, C is a weekly figure /7) so this
+// function itself doesn't need to know which unit it came from.
 // Each of THOSE additional recruits spawns the standard flat B/C/D mix
 // (flatMixCurves) rather than becoming another ongoing-recruiter themselves —
 // same conservative one-extra-layer design as buildLeaderDownlineCurve, so
 // this can't spiral into "Full Follow Sponsor" territory.
-// Their own autoship level is kept fixed at their segment's baseline (Gold/2
-// for B, Silver/1 for C) rather than auto-upgrading off their own growing
-// personal count — a deliberate simplification since what actually matters
-// for the RUNNER's income is which of the Runner's own Coded legs this
-// activity falls under, not this downline member's own independent rank.
-function buildOngoingSegmentCurve(maxT, rootProducts, initialRecruits, initialRecruitProducts, monthlyOngoingRate, flatMixCurves) {
+// Their own autoship level auto-upgrades based on THEIR OWN growing personal
+// count (Silver=1/Gold=2/Platinum=3, crossing 3/5/9) — see
+// leaderAutoshipLevel-style usage via runnerAutoshipAt(ongoingBOwnQ[t]) /
+// runnerAutoshipAt(ongoingCOwnQ[t]) in simulate().
+function buildOngoingSegmentCurve(maxT, rootProducts, initialRecruits, initialRecruitProducts, dailyOngoingRate, flatMixCurves) {
   const P = new Array(maxT + 1).fill(0);
   const EV = new Array(maxT + 1).fill(0);
   P[0] = 1 + initialRecruits;
   EV[0] = rootProducts + initialRecruits * initialRecruitProducts;
-  const dailyRate = monthlyOngoingRate / 30;
   for (let t = 1; t <= maxT; t++) {
     let addP = 0, addEV = 0;
     for (let s = 1; s <= t; s++) {
       const rel = t - s;
-      addP += dailyRate * flatMixCurves.P[rel];
-      addEV += dailyRate * flatMixCurves.EV[rel];
+      addP += dailyOngoingRate * flatMixCurves.P[rel];
+      addEV += dailyOngoingRate * flatMixCurves.EV[rel];
     }
     P[t] = P[0] + addP;
     EV[t] = EV[0] + addEV;
@@ -612,18 +606,19 @@ function buildPersonalRecruitCurve(maxT, daysPerWeek, newRepsPerDay) {
   return Q;
 }
 
-// An ongoing-recruiting leg's (Segment B/C with the "keep recruiting" slider
-// on) OWN personal-recruit count over time — distinct from P(t), which tracks
-// the size of their whole downline subtree. Starts at their one-time cluster
-// size, then grows linearly at the ongoing monthly rate. This is what actually
-// determines whether THAT person crosses 9 personal recruits and reaches
-// their own Platinum Coded Bonus Rank.
-function buildOwnRecruitCurve(maxT, initialRecruits, monthlyRate) {
+// A Segment B or C member's OWN personal-recruit count over time — distinct
+// from P(t), which tracks the size of their whole downline subtree. Starts
+// at their one-time initial cluster size, then grows linearly at their
+// segment's ongoing daily-equivalent rate (see buildOngoingSegmentCurve
+// comment on units). This is what actually determines whether THAT person
+// crosses the Silver/Gold/Platinum thresholds and reaches their own Coded
+// Bonus Rank.
+function buildOwnRecruitCurve(maxT, initialRecruits, dailyRate) {
   const OQ = new Array(maxT + 1).fill(0);
-  const dailyRate = monthlyRate / 30;
   for (let t = 0; t <= maxT; t++) OQ[t] = initialRecruits + dailyRate * t;
   return OQ;
 }
+
 
 // Of everyone the RUNNER personally recruited, how many have themselves
 // become Platinum-Coded-Bonus-Rank qualified (9+ of THEIR OWN personally-
@@ -718,36 +713,37 @@ function codeTierMinAutoship(tier) {
 // cumulative total would misrepresent a monthly-income claim. Stops at the
 // first month where that month's earned income meets/exceeds the goal, capped
 // at 3 months (see comment above simulate()). A snapshot is recorded for every simulated month either way.
-const ONGOING_MONTHLY_RATE = 2; // Carl's real-world figure: ~2 recruits/month for the "keeps building" slice of B/C
+const ONGOING_MONTHLY_RATE_B = 2; // Gold (Segment B) keeps recruiting ~2/month — Carl's real-world figure
+const ONGOING_WEEKLY_RATE_C = 1; // Silver (Segment C) keeps recruiting ~1/week — Carl's real-world figure
 
-function simulate({ goalDollars, daysPerWeek, newRepsPerDay, productsOnSignup, leaderDays = [], fracB = 0, fracC = 0, fracD = 0, productsD = 1, fracBOngoingPct = 0, fracCOngoingPct = 0, capMonths = 3 }) {
+function simulate({ goalDollars, daysPerWeek, newRepsPerDay, productsOnSignup, targetPersonallyEnrolled = 0, fracB = 0, fracC = 0, fracD = 0, productsD = 1, capMonths = 3 }) {
   const capDays = capMonths * 30;
 
-  // Four growth engines:
-  //  - nonLeaderCurves: the full B/C/D mix, used as-is for (a) Fast Start's
-  //    blended cluster math (unaffected by the ongoing split — initial
-  //    enrollment-order behavior is identical either way) and (b) as the
-  //    "what do my recruits' recruits look like" mix fed to Leaders and
-  //    ongoing-B/C members alike.
-  //  - flatCurves: the SAME formula, but built from only the non-ongoing
-  //    share of B and C (plus all of D) — this is what actually gets used
-  //    for the "stops after one push" portion of the population, so its
-  //    weight is reduced by however much of B/C moved into the ongoing pool.
-  //  - leaderCurves: a named Leader's own subtree (see buildLeaderDownlineCurve).
-  //  - ongoingBCurves / ongoingCCurves: the slice of Segment B/C that keeps
-  //    recruiting ~2/month after their initial cluster (see
+  // Three growth engines beyond the Runner's own:
+  //  - nonLeaderCurves: the full B/C/D mix at the moment of signup — used for
+  //    (a) Fast Start's blended cluster math and (b) as the "what does each
+  //    NEW recruit produced by an ongoing B/C recruiter look like" mix.
+  //  - flatCurves: ONLY Segment D now (product users who never recruit) —
+  //    Segment B and C no longer have any "stops after one push" share; all
+  //    of B and all of C keep recruiting indefinitely (see below).
+  //  - leaderCurves: a duplicator's own subtree (see buildLeaderDownlineCurve).
+  //  - ongoingBCurves / ongoingCCurves: ALL of Segment B / Segment C,
+  //    recruiting indefinitely at their own weekly rate (see
   //    buildOngoingSegmentCurve above).
+  // Convert each segment's ongoing rate to a daily-equivalent figure, using
+  // ITS OWN cadence: Gold (B) is a monthly figure (/30), Silver (C) is a
+  // weekly figure (/7) — per Carl's direction, these are NOT the same unit.
+  const dailyRateB = ONGOING_MONTHLY_RATE_B / 30;
+  const dailyRateC = ONGOING_WEEKLY_RATE_C / 7;
   const nonLeaderCurves = buildNonLeaderCurve(capDays, fracB, fracC, fracD, productsD);
-  const fracBOngoing = Math.max(0, Math.min(1, fracBOngoingPct / 100));
-  const fracCOngoing = Math.max(0, Math.min(1, fracCOngoingPct / 100));
-  const flatCurves = buildNonLeaderCurve(capDays, fracB * (1 - fracBOngoing), fracC * (1 - fracCOngoing), fracD, productsD);
-  const ongoingBCurves = buildOngoingSegmentCurve(capDays, /* rootProducts */ 2, /* initialRecruits */ 1, /* initialRecruitProducts */ 1, ONGOING_MONTHLY_RATE, nonLeaderCurves);
-  const ongoingCCurves = buildOngoingSegmentCurve(capDays, /* rootProducts */ 1, /* initialRecruits */ 2, /* initialRecruitProducts */ 1, ONGOING_MONTHLY_RATE, nonLeaderCurves);
-  // OWN personal-recruit count (not subtree size) for ongoing-B/C members —
+  const flatCurves = buildNonLeaderCurve(capDays, 0, 0, fracD, productsD);
+  const ongoingBCurves = buildOngoingSegmentCurve(capDays, /* rootProducts */ 2, /* initialRecruits */ 2, /* initialRecruitProducts */ 1, dailyRateB, nonLeaderCurves);
+  const ongoingCCurves = buildOngoingSegmentCurve(capDays, /* rootProducts */ 1, /* initialRecruits */ 2, /* initialRecruitProducts */ 1, dailyRateC, nonLeaderCurves);
+  // OWN personal-recruit count (not subtree size) for Segment B/C members —
   // used to check whether THAT person individually crosses 9 recruits and
   // reaches their own Platinum Coded Bonus Rank (see countPlatinumQualifiedPersonals).
-  const ongoingBOwnQ = buildOwnRecruitCurve(capDays, 1, ONGOING_MONTHLY_RATE);
-  const ongoingCOwnQ = buildOwnRecruitCurve(capDays, 2, ONGOING_MONTHLY_RATE);
+  const ongoingBOwnQ = buildOwnRecruitCurve(capDays, 2, dailyRateB);
+  const ongoingCOwnQ = buildOwnRecruitCurve(capDays, 2, dailyRateC);
   const leaderCurves = buildLeaderDownlineCurve(capDays, daysPerWeek, newRepsPerDay, productsOnSignup, nonLeaderCurves);
   const Q = buildPersonalRecruitCurve(capDays, daysPerWeek, newRepsPerDay);
 
@@ -758,16 +754,16 @@ function simulate({ goalDollars, daysPerWeek, newRepsPerDay, productsOnSignup, l
     if (leg.kind === 'ongoingC') return ongoingCCurves;
     return flatCurves;
   };
-  const autoshipLevelForLeg = (leg) => {
-    if (leg.kind === 'leader') return leaderAutoshipLevel();
-    if (leg.kind === 'ongoingB') return 2; // fixed at Gold's 2-product baseline — see buildOngoingSegmentCurve comment
-    if (leg.kind === 'ongoingC') return 1; // fixed at Silver's 1-product baseline
+  const autoshipLevelForLeg = (leg, t) => {
+    if (leg.kind === 'leader') return leaderAutoshipLevel(t);
+    if (leg.kind === 'ongoingB') return runnerAutoshipAt(ongoingBOwnQ[t]);
+    if (leg.kind === 'ongoingC') return runnerAutoshipAt(ongoingCOwnQ[t]);
     return nonLeaderAutoshipLevel();
   };
-  const matrixDollarRateForLeg = (leg) => {
-    if (leg.kind === 'leader') return leaderMatrixDollarRate();
-    if (leg.kind === 'ongoingB') return matrixRateForCV(2);
-    if (leg.kind === 'ongoingC') return matrixRateForCV(1);
+  const matrixDollarRateForLeg = (leg, t) => {
+    if (leg.kind === 'leader') return leaderMatrixDollarRate(t);
+    if (leg.kind === 'ongoingB') return matrixRateForCV(runnerAutoshipAt(ongoingBOwnQ[t]));
+    if (leg.kind === 'ongoingC') return matrixRateForCV(runnerAutoshipAt(ongoingCOwnQ[t]));
     return nonLeaderMatrixDollarRate();
   };
   const legCohorts = [];
@@ -777,25 +773,21 @@ function simulate({ goalDollars, daysPerWeek, newRepsPerDay, productsOnSignup, l
   let monthFastStart = 0, monthCoded = 0;
   const history = [];
   const months = [];
-  const nonLeaderCluster = clusterMultiplier(fracB, fracC);
 
   // A non-leader's blended per-recruiting-event product volume matches
   // nonLeaderCurves' EV[0] — their own order across Segments B/C/D, plus the
   // one-time recruits B and C bring in.
   const nonLeaderEvPerUnitCluster = nonLeaderCurves.EV[0];
 
-  // Leaders emerge at a given DAY, not a personal-enrollment ordinal — no
-  // parent is assumed, since a leader can come from anywhere in a growing
-  // downline (found by another downline member, not necessarily by you).
-  // They're pushed as independent legs, always at the Platinum Code rate
-  // (realistic once a team is large enough to be finding leaders this deep —
-  // still gated by the Runner's own autoship level like any other leg). They
-  // do NOT generate Fast Start Bonus, since Fast Start pays specifically on
-  // YOUR OWN new personal enrollment orders, and a downline-found leader
-  // wasn't necessarily personally enrolled by you.
-  for (const d of leaderDays) {
-    if (d > 0 && d <= capDays) legCohorts.push({ day: d, count: 1, tier: 'Platinum', rate: 6, isLeader: true, kind: 'leader' });
-  }
+  // Duplicators (the "# Personally Enrolled Who Duplicate You" target) are no
+  // longer injected on guessed future days — that wasn't realistic. Instead
+  // they're simply the FIRST targetPersonallyEnrolled people in your REAL,
+  // actual personal-enrollment stream (see the day loop below), filled in at
+  // whatever pace you're really recruiting at. Once that target headcount is
+  // reached, everyone else you personally enroll goes through the normal
+  // B/C/D mix. This also means duplicators now correctly generate Fast Start
+  // Bonus on their own enrollment order (they ARE personally enrolled by
+  // you), unlike the old "found anywhere in downline" Leader model.
 
   const teamSizeAt = (day) =>
     legCohorts.reduce((sum, leg) => {
@@ -809,27 +801,22 @@ function simulate({ goalDollars, daysPerWeek, newRepsPerDay, productsOnSignup, l
   // at any point in the day loop.
   const currentRunnerAutoship = () => runnerAutoshipAt(ordinalCounter);
 
-  // A Leader's own autoship level is assumed to auto-upgrade the same way
-  // the Runner's does (they build the same way) — reuse currentRunnerAutoship()
-  // directly, no blending needed since Leaders are 100% one pattern.
-  const leaderAutoshipLevel = () => currentRunnerAutoship();
-  const leaderMatrixDollarRate = () => matrixRateForCV(currentRunnerAutoship());
+  // A Leader's own autoship level auto-upgrades the same way the Runner's
+  // does (Silver=1/Gold=2/Platinum=3 product, per activePersonalReps
+  // crossing 3/5/9) — but based on THEIR OWN personal-recruit count since
+  // THEIR OWN join day (Q[t], t = days since that leader joined), not a
+  // borrowed copy of the Runner's current level. Q(t) already represents
+  // "any duplicator following the Runner's own daily/weekly pace" relative
+  // to their own start day, so it's the correct curve to reuse here.
+  const leaderAutoshipLevel = (t) => runnerAutoshipAt(Q[t]);
+  const leaderMatrixDollarRate = (t) => matrixRateForCV(runnerAutoshipAt(Q[t]));
 
-  // Non-leader team-wide average autoship level / Matrix-dollar rate, blended
-  // across Segments B/C/D and their one-time recruits (B fixed at Gold/2, D
-  // uses its own chosen order size, C and all one-time recruits fixed at the
-  // minimum 1 product), weighted by their share of total cluster headcount.
-  const nonLeaderAutoshipLevel = () => {
-    const total = fracB * 2 + fracC * 1 + fracD * productsD + (fracB * 1 + fracC * 2) * 1;
-    return total / nonLeaderCluster;
-  };
-  const nonLeaderMatrixDollarRate = () => {
-    // matrixRateForCV() already returns the FULL per-order dollar amount
-    // ($1 Silver / $2 Gold / $4 Platinum, per order — not per product).
-    const total = fracB * matrixRateForCV(2) + fracC * matrixRateForCV(1) + fracD * matrixRateForCV(productsD)
-      + (fracB * 1 + fracC * 2) * matrixRateForCV(1);
-    return total / nonLeaderCluster;
-  };
+  // "Flat" legs are now ONLY Segment D (product users) — B and C always keep
+  // recruiting (see ongoingBCurves/ongoingCCurves above). D never personally
+  // recruits, so its product order is fixed at productsD forever — it never
+  // has a personal count to rank up on.
+  const nonLeaderAutoshipLevel = () => productsD;
+  const nonLeaderMatrixDollarRate = () => matrixRateForCV(productsD);
 
   const lifestyleTiers = [
     [1000000, 15000], [750000, 10000], [400000, 6000], [200000, 3000], [100000, 1500],
@@ -842,13 +829,6 @@ function simulate({ goalDollars, daysPerWeek, newRepsPerDay, productsOnSignup, l
     if (isWorkingDay(day, daysPerWeek)) {
       const countToday = newRepsPerDay;
 
-      // Fast Start Bonus pays on what YOUR OWN new personal enrollments
-      // order at signup — blended across Segments B/C/D plus the one-time
-      // recruits B/C bring in. Leaders are handled as separate legs (see
-      // above) and don't factor into your personal enrollment stream here.
-      const fs = countToday * nonLeaderEvPerUnitCluster * 20;
-      monthFastStart += fs; cumulativeTotal += fs; allFastStart += fs;
-
       let remaining = countToday;
       let pos = ordinalCounter + 1;
       while (remaining > 0) {
@@ -858,18 +838,33 @@ function simulate({ goalDollars, daysPerWeek, newRepsPerDay, productsOnSignup, l
         else if (pos <= 4) blockEnd = 4;
         else if (pos <= 8) blockEnd = 8;
         else blockEnd = pos + remaining;
+        // Never let a block straddle the duplicator-target line either, so
+        // each block is cleanly ALL duplicators or ALL B/C/D — never a mix.
+        if (pos <= targetPersonallyEnrolled && blockEnd > targetPersonallyEnrolled) blockEnd = targetPersonallyEnrolled;
         const nInBlock = Math.min(remaining, blockEnd - pos + 1);
-        // Each day's block of nInBlock new personal enrollees splits three
-        // ways: the flat share (stays flat B/C plus all of D), and the
-        // ongoing-B / ongoing-C shares (see buildOngoingSegmentCurve) —
-        // together these always sum back to nInBlock, so nothing is double-
-        // counted or lost regardless of where the ongoing sliders sit.
-        const ongoingBWeight = nInBlock * fracB * fracBOngoing;
-        const ongoingCWeight = nInBlock * fracC * fracCOngoing;
-        const flatWeight = nInBlock - ongoingBWeight - ongoingCWeight;
-        if (flatWeight > 0) legCohorts.push({ day, count: flatWeight, tier, rate, isLeader: false, kind: 'flat' });
-        if (ongoingBWeight > 0) legCohorts.push({ day, count: ongoingBWeight, tier, rate, isLeader: false, kind: 'ongoingB' });
-        if (ongoingCWeight > 0) legCohorts.push({ day, count: ongoingCWeight, tier, rate, isLeader: false, kind: 'ongoingC' });
+        if (pos <= targetPersonallyEnrolled) {
+          // This block falls within your target headcount of duplicators —
+          // people who follow your own recruiting pace and rank progression
+          // (see leaderCurves / leaderAutoshipLevel), starting from THEIR
+          // real join day (today).
+          legCohorts.push({ day, count: nInBlock, tier, rate, isLeader: true, kind: 'leader' });
+          const fsBlock = nInBlock * productsOnSignup * 20;
+          monthFastStart += fsBlock; cumulativeTotal += fsBlock; allFastStart += fsBlock;
+        } else {
+          // Each day's block of nInBlock new personal enrollees splits three
+          // ways: the flat share (stays flat B/C plus all of D), and the
+          // ongoing-B / ongoing-C shares (see buildOngoingSegmentCurve) —
+          // together these always sum back to nInBlock, so nothing is double-
+          // counted or lost regardless of where the ongoing sliders sit.
+          const ongoingBWeight = nInBlock * fracB;
+          const ongoingCWeight = nInBlock * fracC;
+          const flatWeight = nInBlock - ongoingBWeight - ongoingCWeight;
+          if (flatWeight > 0) legCohorts.push({ day, count: flatWeight, tier, rate, isLeader: false, kind: 'flat' });
+          if (ongoingBWeight > 0) legCohorts.push({ day, count: ongoingBWeight, tier, rate, isLeader: false, kind: 'ongoingB' });
+          if (ongoingCWeight > 0) legCohorts.push({ day, count: ongoingCWeight, tier, rate, isLeader: false, kind: 'ongoingC' });
+          const fsBlock = nInBlock * nonLeaderEvPerUnitCluster * 20;
+          monthFastStart += fsBlock; cumulativeTotal += fsBlock; allFastStart += fsBlock;
+        }
         pos += nInBlock;
         remaining -= nInBlock;
       }
@@ -921,7 +916,7 @@ function simulate({ goalDollars, daysPerWeek, newRepsPerDay, productsOnSignup, l
         if (leg.day > day) continue;
         const t = day - leg.day;
         const curveP = curvesForLeg(leg).P;
-        const level = autoshipLevelForLeg(leg);
+        const level = autoshipLevelForLeg(leg, t);
         const legAutoshipVol = leg.count * curveP[t] * level;
         totalAutoshipVol += legAutoshipVol;
         if (leg.rate === 0 || runnerAutoship < codeTierMinAutoship(leg.tier)) continue;
@@ -951,8 +946,9 @@ function simulate({ goalDollars, daysPerWeek, newRepsPerDay, productsOnSignup, l
         let weightedRateSum = 0;
         for (const leg of legCohorts) {
           if (leg.day > day) continue;
-          const n = leg.count * curvesForLeg(leg).P[day - leg.day];
-          weightedRateSum += n * matrixDollarRateForLeg(leg);
+          const t = day - leg.day;
+          const n = leg.count * curvesForLeg(leg).P[t];
+          weightedRateSum += n * matrixDollarRateForLeg(leg, t);
         }
         const filled = Math.min(totalTeam, maxPositions);
         const blendedRate = totalTeam > 0 ? weightedRateSum / totalTeam : 0;
@@ -1047,35 +1043,8 @@ function syncTierTotal() {
   document.getElementById(id).addEventListener('input', syncTierTotal);
 });
 
-// Default leader emergence pattern: a realistic, back-loaded spread of DAYS
-// into the 90-day (3-month) projection window — leaders surface after
-// momentum builds, not on day one. No parent is assumed; a leader can come
-// from anywhere in the growing downline, not just your own personal list.
-const DEFAULT_LEADER_DAYS = [12, 22, 32, 48, 55, 63, 70, 76, 80, 83, 85, 87, 88, 89, 90];
-const leaderOrdinalsRowEl = document.getElementById('leaderOrdinalsRow');
-
-function buildLeaderOrdinalFields(n, preserveExisting) {
-  const existing = preserveExisting ? getLeaderOrdinals() : [];
-  leaderOrdinalsRowEl.innerHTML = '';
-  for (let i = 0; i < n; i++) {
-    const val = existing[i] || DEFAULT_LEADER_DAYS[i] || Math.min(90, DEFAULT_LEADER_DAYS[DEFAULT_LEADER_DAYS.length - 1]);
-    const wrap = document.createElement('label');
-    wrap.style.cssText = 'display:flex; flex-direction:column; gap:3px; font-weight:400; font-size:0.85em;';
-    wrap.innerHTML = `Leader ${i + 1} — Day #<input type="number" min="1" max="90" step="1" class="leaderOrdinalInput" value="${val}" style="width:70px;">`;
-    leaderOrdinalsRowEl.appendChild(wrap);
-  }
-}
-function getLeaderOrdinals() {
-  return Array.from(document.querySelectorAll('.leaderOrdinalInput'))
-    .map((el) => parseInt(el.value) || 0)
-    .filter((v) => v > 0 && v <= 90);
-}
-document.getElementById('numLeaders').addEventListener('input', () => {
-  const n = Math.max(0, parseInt(document.getElementById('numLeaders').value) || 0);
-  buildLeaderOrdinalFields(n, true);
-});
-buildLeaderOrdinalFields(5, false);
 syncTierTotal();
+
 
 const goalInput = document.getElementById('goalDollars');
 const goalPresets = [1000, 2500, 5000, 10000, 15000, 25000];
@@ -1111,13 +1080,10 @@ document.getElementById('clearBtn').addEventListener('click', () => {
   // Blank every field completely rather than reverting to the pre-filled example values
   form.querySelectorAll('input[type="number"], input[type="date"]').forEach((el) => { el.value = ''; });
   form.querySelectorAll('select').forEach((el) => { el.selectedIndex = 0; });
-  document.getElementById('numLeaders').value = '5';
-  buildLeaderOrdinalFields(5, false);
+  document.getElementById('targetPersonallyEnrolled').value = '24';
   document.getElementById('tierBPct').value = '39';
   document.getElementById('tierCPct').value = '39';
   document.getElementById('tierDPct').value = '22';
-  document.getElementById('fracBOngoingPct').value = '25';
-  document.getElementById('fracCOngoingPct').value = '15';
   syncTierTotal();
   syncGoalChips();
 
@@ -1151,9 +1117,13 @@ form.addEventListener('submit', function (e) {
   const goalDollars = parseFloat(document.getElementById('goalDollars').value) || 0;
   const goalDateVal = document.getElementById('goalDate').value;
   const daysPerWeek = parseInt(document.getElementById('daysPerWeek').value) || 1;
-  const hoursPerDay = parseFloat(document.getElementById('hoursPerDay').value) || 0;
+  const hoursPerWeek = parseFloat(document.getElementById('hoursPerWeek').value) || 0;
   const callsPerDay = parseInt(document.getElementById('callsPerDay').value) || 0;
-  const newRepsPerDay = parseFloat(document.getElementById('newRepsPerDay').value) || 0;
+  const newRepsPerWeek = parseFloat(document.getElementById('newRepsPerWeek').value) || 0;
+  // The simulation engine works in reps-per-working-day internally; the Runner
+  // now enters a weekly pace (more realistic than guessing a daily number),
+  // so we spread it evenly across however many days/week they said they'd work.
+  const newRepsPerDay = daysPerWeek > 0 ? newRepsPerWeek / daysPerWeek : 0;
   const productsOnSignup = parseInt(document.getElementById('productsOnSignup').value);
 
   const productsD = 1; // Segment D kept simple at 1 product
@@ -1167,11 +1137,9 @@ form.addEventListener('submit', function (e) {
     fracC = cRaw / total;
     fracD = dRaw / total;
   }
-  const leaderDays = getLeaderOrdinals();
-  const fracBOngoingPct = Math.max(0, Math.min(100, parseFloat(document.getElementById('fracBOngoingPct').value) || 0));
-  const fracCOngoingPct = Math.max(0, Math.min(100, parseFloat(document.getElementById('fracCOngoingPct').value) || 0));
+  const targetPersonallyEnrolled = Math.max(0, parseInt(document.getElementById('targetPersonallyEnrolled').value) || 0);
 
-  const result = simulate({ goalDollars, daysPerWeek, newRepsPerDay, productsOnSignup, leaderDays, fracB, fracC, fracD, productsD, fracBOngoingPct, fracCOngoingPct, capMonths: 3 });
+  const result = simulate({ goalDollars, daysPerWeek, newRepsPerDay, productsOnSignup, targetPersonallyEnrolled, fracB, fracC, fracD, productsD, capMonths: 3 });
 
   const entryDate = new Date();
   const monthDate = (monthNum) => new Date(entryDate.getTime() + monthNum * 30 * 86400000);
@@ -1206,8 +1174,8 @@ form.addEventListener('submit', function (e) {
       subEl.textContent = `At this pace, Month 3 closed at ${fmtMoney(finalMonth.monthlyEarned)} earned that month against a ${fmtMoney(goalDollars)}/month goal. See adjustments below.`;
       adjustBox.style.display = 'block';
       adjustList.innerHTML = `
-        <li>Increase # new reps enrolled per day</li>
-        <li>Increase # days worked per week or # hours worked per day</li>
+        <li>Increase # new reps enrolled per week</li>
+        <li>Increase # days worked per week or # hours worked per week</li>
         <li>Increase products per enrollment/autoship order (Gold or Platinum builds Coded Bonus and Matrix rate faster)</li>
         <li>Extend the target date for this goal</li>
         <li>Lower the goal amount as a starting target, then re-run for a stretch goal once it's hit</li>
@@ -1220,10 +1188,8 @@ form.addEventListener('submit', function (e) {
 
     const methodNote = document.getElementById('methodNote');
     methodNote.style.display = 'block';
-    const leaderCount = leaderDays.length;
-    const bOngoingLine = fracBOngoingPct > 0 ? ` (${fracBOngoingPct}% of them keep recruiting ~2/month afterward instead of stopping)` : '';
-    const cOngoingLine = fracCOngoingPct > 0 ? ` (${fracCOngoingPct}% of them keep recruiting ~2/month afterward instead of stopping)` : '';
-    methodNote.textContent = `Modeled realistically: ${leaderCount} Leader${leaderCount === 1 ? '' : 's'} recruit${leaderCount === 1 ? 's' : ''} at your pace indefinitely, becoming active around day ${leaderDays.join(', day ') || '—'} of the projection (coming from anywhere in the downline, not just your own personal list), while among everyone you personally enroll — ${Math.round(fracB * 100)}% order at Gold and personally recruit 1 person one time${bOngoingLine}, ${Math.round(fracC * 100)}% order at Silver and personally recruit 2 people one time${cOngoingLine}, ${Math.round(fracD * 100)}% just use the products at member pricing and never personally recruit — remaining one-timers stop building, and product users stay flat.`;
+    const duplicatorsSoFar = Math.min(finalMonth.personalEnrolled, targetPersonallyEnrolled);
+    methodNote.textContent = `Modeled realistically: your first ${targetPersonallyEnrolled} personal enrollments duplicate your own recruiting pace and rank progression — ${duplicatorsSoFar} of those ${duplicatorsSoFar === 1 ? 'has' : 'have'} joined so far at this pace. Once you reach that target, everyone else you personally enroll splits into: ${Math.round(fracB * 100)}% start at Gold and keep recruiting ~2/month (upgrading their own product order as their own rank climbs), ${Math.round(fracC * 100)}% start at Silver and keep recruiting ~1/week (same rank-based upgrades), ${Math.round(fracD * 100)}% are rep-customers who just use the products at member pricing and never personally recruit.`;
 
     const yourRankLine = document.getElementById('yourRankLine');
     if (finalMonth.rank) {
