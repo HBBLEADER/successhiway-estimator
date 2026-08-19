@@ -1,0 +1,23 @@
+/* ============================================================
+   SuccessHiway demo overrides — hides PDF.js toolbar chrome
+   (open file, print, download, tools menu, page counter, zoom
+   controls, presentation mode, etc.) for a clean, distraction-
+   free embedded preview. Scroll + native pinch/wheel zoom still
+   work; there's just no visible toolbar UI to interact with.
+   ============================================================ */
+#toolbarContainer {
+  display: none !important;
+}
+#loadingBar {
+  display: none !important;
+}
+#mainContainer {
+  top: 0 !important;
+}
+#viewerContainer {
+  top: 0 !important;
+}
+.secondaryToolbar,
+#secondaryToolbar {
+  display: none !important;
+}
