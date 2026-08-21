@@ -420,7 +420,7 @@
 
     <div class="breakdown" id="weeklyProgressBox" style="margin-top:-8px;">
       <div class="breakdown-row" style="background:var(--paper-dim); font-weight:700;">
-        <span>Month-by-Month Progress</span><span></span>
+        <span>Week-by-Week Progress</span><span></span>
       </div>
       <div id="weeklyProgressContent"></div>
     </div>
@@ -937,15 +937,13 @@ form.addEventListener('submit', function (e) {
     const bd = document.getElementById('breakdown');
     const monthFastStartTotal = finalSummary.weeks.reduce((s, w) => s + w.weeklyFastStart, 0);
     const monthWeeklyCodedTotal = finalSummary.weeks.reduce((s, w) => s + w.weeklyCodedBonus, 0);
-    const totalLabel = finalSummary.isEstimate ? 'Estimated Monthly Income' : 'Month End Income (Actual)';
+    const monthCodedCombined = monthWeeklyCodedTotal + finalSummary.monthlyCodedBonus;
+    const totalLabel = finalSummary.isEstimate ? 'Estimated Monthly Income' : 'Total Earned This Month';
     bd.innerHTML = `
-      <div class="breakdown-row" style="background:var(--paper-dim); font-weight:700;"><span>Weekly-Paid Streams — Month ${finalSummary.monthNum} total</span><span></span></div>
-      <div class="breakdown-row"><span>Fast Start Bonus (weekly)</span><span class="amt">${fmtMoney(monthFastStartTotal)}</span></div>
-      <div class="breakdown-row"><span>Coded Bonus — Weekly (new enrollments)</span><span class="amt">${fmtMoney(monthWeeklyCodedTotal)}</span></div>
-      <div class="breakdown-row" style="background:var(--paper-dim); font-weight:700;"><span>Monthly-Paid Streams — as of ${finalSummary.isEstimate ? 'this point in' : 'the end of'} Month ${finalSummary.monthNum}</span><span></span></div>
-      <div class="breakdown-row"><span>Matrix Pay</span><span class="amt">${fmtMoney(finalSummary.matrixPay)}</span></div>
-      <div class="breakdown-row"><span>Coded Bonus — Monthly (reorders)</span><span class="amt">${fmtMoney(finalSummary.monthlyCodedBonus)}</span></div>
-      <div class="breakdown-row"><span>Lifestyle Bonus</span><span class="amt">${fmtMoney(finalSummary.lifestyleBonus)}</span></div>
+      <div class="breakdown-row"><span>Fast Start Bonus — this month</span><span class="amt">${fmtMoney(monthFastStartTotal)}</span></div>
+      <div class="breakdown-row"><span>Coded Bonus (Weekly + Monthly) — this month</span><span class="amt">${fmtMoney(monthCodedCombined)}</span></div>
+      <div class="breakdown-row"><span>Matrix Pay — this month</span><span class="amt">${fmtMoney(finalSummary.matrixPay)}</span></div>
+      <div class="breakdown-row"><span>Lifestyle Bonus — this month</span><span class="amt">${fmtMoney(finalSummary.lifestyleBonus)}</span></div>
       <div class="breakdown-row" style="font-weight:700; border-top:2px solid var(--ink);"><span>${totalLabel}</span><span class="amt">${fmtMoney(finalSummary.monthTotal)}</span></div>
     `;
 
@@ -988,37 +986,37 @@ form.addEventListener('submit', function (e) {
       }
     }
 
-    // Month-by-Month Progress — each month groups its own weeks (true
-    // single-week Fast Start + Weekly Coded only) under a Month End (or
-    // Estimated, if the goal/hard-cap landed mid-month) total that layers
-    // in the monthly-only streams. Nothing carries over between months —
-    // each month's weekly total resets to zero at the start of the next.
+    // Week-by-Week Progress — flat list spanning every week from Week 1
+    // through the goal-reached week (or the 6-month close), matching the
+    // Guide's format: one row per week, with a simple Month divider header
+    // so each month's weeks are clearly grouped without hiding anything.
     const progressContent = document.getElementById('weeklyProgressContent');
-    progressContent.innerHTML = result.monthSummaries.map((ms, idx) => {
-      const isLast = idx === result.monthSummaries.length - 1;
-      const totalLabel = ms.isEstimate ? 'Estimated Monthly Income' : 'Month End Income';
-      const weekRows = ms.weeks.map((wk) => {
-        const d = weekDate(wk.weekNum);
-        const dateStr = d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
-        const rankStr = wk.rank || 'Not yet ranked';
-        return `
-          <div class="month-row">
-            <span class="m-label">Week ${wk.weekNum}</span>
-            <span class="m-detail">${dateStr} — ${rankStr}, ${fmtNum(wk.personalEnrolled)} personal enrolled, team ${fmtNum(wk.teamMembers)}</span>
-            <span class="m-amt">Fast Start ${fmtMoney(wk.weeklyFastStart)} + Weekly Coded ${fmtMoney(wk.weeklyCodedBonus)} = ${fmtMoney(wk.weeklyIncome)}</span>
+    let lastMonthNum = null;
+    progressContent.innerHTML = result.months.map((wk) => {
+      const d = weekDate(wk.weekNum);
+      const dateStr = d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+      const rankStr = wk.rank || '—';
+      const rowClass = wk.reached ? 'reached' : 'not-reached';
+      const statusStr = wk.reached ? 'GOAL REACHED' : 'not yet';
+
+      let monthHeader = '';
+      if (wk.monthNum !== lastMonthNum) {
+        monthHeader = `
+          <div class="breakdown-row" style="background:var(--paper-dim); font-weight:700;">
+            <span>Month ${wk.monthNum}</span><span></span>
           </div>
         `;
-      }).join('');
+        lastMonthNum = wk.monthNum;
+      }
+
       return `
-        <details class="month-group" ${isLast ? 'open' : ''}>
-          <summary class="month-row ${ms.goalReachedHere ? 'reached' : 'not-reached'}" style="cursor:pointer;">
-            <span class="m-label">Month ${ms.monthNum}</span>
-            <span class="m-detail">Matrix ${fmtMoney(ms.matrixPay)} + Monthly Coded ${fmtMoney(ms.monthlyCodedBonus)} + Lifestyle ${fmtMoney(ms.lifestyleBonus)}${ms.isEstimate ? ' (mid-month snapshot)' : ''}</span>
-            <span class="m-amt">${totalLabel}: ${fmtMoney(ms.monthTotal)} / ${fmtMoney(goalDollars)}</span>
-            <span class="m-status">${ms.goalReachedHere ? 'Goal Reached' : (ms.isEstimate ? 'In Progress' : 'Not Yet')}</span>
-          </summary>
-          ${weekRows}
-        </details>
+        ${monthHeader}
+        <div class="month-row ${rowClass}">
+          <span class="m-label">Wk ${wk.weekNum}</span>
+          <span class="m-detail">${dateStr} — ${rankStr}, ${fmtNum(wk.personalEnrolled)} personal enrolled, team ${fmtNum(wk.teamMembers)}</span>
+          <span class="m-amt">${fmtMoney(wk.monthlyEarned)} / ${fmtMoney(wk.monthlyGoal)}</span>
+          <span class="m-status">${statusStr}</span>
+        </div>
       `;
     }).join('');
 
