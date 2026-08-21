@@ -935,17 +935,20 @@ form.addEventListener('submit', function (e) {
     requiredAutoshipLine.innerHTML = `<strong>Your Required Autoship at Goal:</strong> ${finalWeek.runnerAutoship} ${autoshipWord}/month — to qualify for this income, you must remain on this autoship level every month. Missing a month's autoship order means missing that month's commissions.`;
 
     const bd = document.getElementById('breakdown');
-    const monthFastStartTotal = finalSummary.weeks.reduce((s, w) => s + w.weeklyFastStart, 0);
-    const monthWeeklyCodedTotal = finalSummary.weeks.reduce((s, w) => s + w.weeklyCodedBonus, 0);
-    const monthCodedCombined = monthWeeklyCodedTotal + finalSummary.monthlyCodedBonus;
-    const totalLabel = finalSummary.isEstimate ? 'Estimated Monthly Income' : 'Total Earned This Month';
-    bd.innerHTML = `
-      <div class="breakdown-row"><span>Fast Start Bonus — this month</span><span class="amt">${fmtMoney(monthFastStartTotal)}</span></div>
-      <div class="breakdown-row"><span>Coded Bonus (Weekly + Monthly) — this month</span><span class="amt">${fmtMoney(monthCodedCombined)}</span></div>
-      <div class="breakdown-row"><span>Matrix Pay — this month</span><span class="amt">${fmtMoney(finalSummary.matrixPay)}</span></div>
-      <div class="breakdown-row"><span>Lifestyle Bonus — this month</span><span class="amt">${fmtMoney(finalSummary.lifestyleBonus)}</span></div>
-      <div class="breakdown-row" style="font-weight:700; border-top:2px solid var(--ink);"><span>${totalLabel}</span><span class="amt">${fmtMoney(finalSummary.monthTotal)}</span></div>
-    `;
+    bd.innerHTML = result.monthSummaries.map((ms) => {
+      const monthFastStartTotal = ms.weeks.reduce((s, w) => s + w.weeklyFastStart, 0);
+      const monthWeeklyCodedTotal = ms.weeks.reduce((s, w) => s + w.weeklyCodedBonus, 0);
+      const monthCodedCombined = monthWeeklyCodedTotal + ms.monthlyCodedBonus;
+      const totalLabel = ms.isEstimate ? `Estimated Monthly Income — Month ${ms.monthNum}` : `Total Earned — Month ${ms.monthNum}`;
+      return `
+        <div class="breakdown-row" style="background:var(--paper-dim); font-weight:700;"><span>Month ${ms.monthNum} Earnings Breakdown</span><span></span></div>
+        <div class="breakdown-row"><span>Fast Start Bonus — Month ${ms.monthNum}</span><span class="amt">${fmtMoney(monthFastStartTotal)}</span></div>
+        <div class="breakdown-row"><span>Coded Bonus (Weekly + Monthly) — Month ${ms.monthNum}</span><span class="amt">${fmtMoney(monthCodedCombined)}</span></div>
+        <div class="breakdown-row"><span>Matrix Pay — Month ${ms.monthNum}</span><span class="amt">${fmtMoney(ms.matrixPay)}</span></div>
+        <div class="breakdown-row"><span>Lifestyle Bonus — Month ${ms.monthNum}</span><span class="amt">${fmtMoney(ms.lifestyleBonus)}</span></div>
+        <div class="breakdown-row" style="font-weight:700; border-top:2px solid var(--ink);"><span>${totalLabel}</span><span class="amt">${fmtMoney(ms.monthTotal)}</span></div>
+      `;
+    }).join('');
 
     const platinumBox = document.getElementById('platinumBox');
     const pCount = finalWeek.platinumQualifiedPersonals;
