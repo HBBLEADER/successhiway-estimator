@@ -988,34 +988,36 @@ form.addEventListener('submit', function (e) {
 
     // Week-by-Week Progress — flat list spanning every week from Week 1
     // through the goal-reached week (or the 6-month close), matching the
-    // Guide's format: one row per week, with a simple Month divider header
-    // so each month's weeks are clearly grouped without hiding anything.
+    // Guide's format: one row per week, with a Month divider header AND an
+    // explicit Month Total summary row at the close of EVERY month (not
+    // just the final one), so each month's own total is always visible.
     const progressContent = document.getElementById('weeklyProgressContent');
-    let lastMonthNum = null;
-    progressContent.innerHTML = result.months.map((wk) => {
-      const d = weekDate(wk.weekNum);
-      const dateStr = d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
-      const rankStr = wk.rank || '—';
-      const rowClass = wk.reached ? 'reached' : 'not-reached';
-      const statusStr = wk.reached ? 'GOAL REACHED' : 'not yet';
-
-      let monthHeader = '';
-      if (wk.monthNum !== lastMonthNum) {
-        monthHeader = `
-          <div class="breakdown-row" style="background:var(--paper-dim); font-weight:700;">
-            <span>Month ${wk.monthNum}</span><span></span>
+    progressContent.innerHTML = result.monthSummaries.map((ms) => {
+      const weekRows = ms.weeks.map((wk) => {
+        const d = weekDate(wk.weekNum);
+        const dateStr = d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+        const rankStr = wk.rank || '—';
+        const rowClass = wk.reached ? 'reached' : 'not-reached';
+        const statusStr = wk.reached ? 'GOAL REACHED' : 'not yet';
+        return `
+          <div class="month-row ${rowClass}">
+            <span class="m-label">Wk ${wk.weekNum}</span>
+            <span class="m-detail">${dateStr} — ${rankStr}, ${fmtNum(wk.personalEnrolled)} personal enrolled, team ${fmtNum(wk.teamMembers)}</span>
+            <span class="m-amt">${fmtMoney(wk.monthlyEarned)} / ${fmtMoney(wk.monthlyGoal)}</span>
+            <span class="m-status">${statusStr}</span>
           </div>
         `;
-        lastMonthNum = wk.monthNum;
-      }
+      }).join('');
+
+      const totalLabel = ms.isEstimate ? `Month ${ms.monthNum} Total (Estimated — goal reached mid-month)` : `Month ${ms.monthNum} Total Earned`;
 
       return `
-        ${monthHeader}
-        <div class="month-row ${rowClass}">
-          <span class="m-label">Wk ${wk.weekNum}</span>
-          <span class="m-detail">${dateStr} — ${rankStr}, ${fmtNum(wk.personalEnrolled)} personal enrolled, team ${fmtNum(wk.teamMembers)}</span>
-          <span class="m-amt">${fmtMoney(wk.monthlyEarned)} / ${fmtMoney(wk.monthlyGoal)}</span>
-          <span class="m-status">${statusStr}</span>
+        <div class="breakdown-row" style="background:var(--paper-dim); font-weight:700;">
+          <span>Month ${ms.monthNum}</span><span></span>
+        </div>
+        ${weekRows}
+        <div class="breakdown-row" style="font-weight:700; border-top:1px solid var(--ink);">
+          <span>${totalLabel}</span><span class="amt">${fmtMoney(ms.monthTotal)}</span>
         </div>
       `;
     }).join('');
