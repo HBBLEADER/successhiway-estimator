@@ -413,6 +413,9 @@
       <div class="breakdown-row"><span>Personally-Enrolled Reps Now Platinum-Qualified</span><span class="amt" id="platinumCount">0</span></div>
       <div class="breakdown-row"><span id="diamondLine"></span></div>
       <div class="breakdown-row"><span id="intlDiamondLine"></span></div>
+      <div class="breakdown-row" id="teamworkNoteRow" style="display:none;">
+        <span id="teamworkNote" style="font-style:italic;"></span>
+      </div>
     </div>
 
     <div class="breakdown" id="weeklyProgressBox" style="margin-top:-8px;">
@@ -432,7 +435,7 @@
     </div>
 
     <div class="disclaimer">
-      <strong>This is a projection tool, not an income guarantee.</strong> Your goal is evaluated as a MONTHLY income figure — at each simulated week, that week's current earning rate (not a running total added up over time) is what's checked against your goal, matching how the compensation plan actually resets and pays out each month. The simulation checks every single week rather than only checking once a month, so it reports the earliest, smallest crossing point rather than a number that's already grown further by the next full month. This projection tries for a result within 3 months, and runs as long as 6 months if needed before stopping. This tool models pure duplication: every person you personally enroll follows your own exact recruiting pace and autoship upgrade rule, and so does everyone they enroll, at every level, indefinitely — there is no manually-configured population mix. Growth compounds weekly rather than daily, with new recruits beginning their own recruiting the week after they join, which keeps the pace realistic rather than compounding within the same week. Because Coded Bonus pays to unlimited depth with no generational cap, results can grow very large the further out a goal is reached — that's a real, accurate feature of the compensation plan's design, not a flaw in this tool. Team size and Matrix Pay volume are capped at 32,765 positions, the real ceiling of the company's 2x14 matrix. This tool models only your own personal activity and the activity of your personally-enrolled downline — it does not model spillover volume from upline sponsoring efforts anywhere, since company-wide spillover can't be predicted for an individual projection. No income claims or guarantees are made or implied. Please refer to the official GreatLife Compensation Plan for complete details.
+      <strong>This is a projection tool, not an income guarantee.</strong> Your goal is evaluated as a MONTHLY income figure — at each simulated week, that week's current earning rate (not a running total added up over time) is what's checked against your goal, matching how the compensation plan actually resets and pays out each month. The simulation checks every single week rather than only checking once a month, so it reports the earliest, smallest crossing point rather than a number that's already grown further by the next full month. This projection tries for a result within 3 months, and runs as long as 6 months if needed before stopping. This tool models pure duplication: every person you personally enroll follows your own exact recruiting pace and autoship upgrade rule, and so does everyone they enroll, at every level, indefinitely — there is no manually-configured population mix. Growth compounds weekly rather than daily, with new recruits beginning their own recruiting the week after they join, which keeps the pace realistic rather than compounding within the same week. Because Coded Bonus pays to unlimited depth with no generational cap, results can grow very large the further out a goal is reached — that's a real, accurate feature of the compensation plan's design, not a flaw in this tool. Matrix Pay's own paying volume is capped at 32,765 positions, the real ceiling of the company's 2x14 matrix — your actual Team size and Team Volume are not capped there, since a downline can and does grow beyond the 14 levels Matrix Pay itself pays on. This tool models only your own personal activity and the activity of your personally-enrolled downline — it does not model spillover volume from upline sponsoring efforts anywhere, since company-wide spillover can't be predicted for an individual projection. No income claims or guarantees are made or implied. Please refer to the official GreatLife Compensation Plan for complete details.
     </div>
   </div>
 </div>
@@ -686,7 +689,11 @@ function simulate({
       ? Q[T - platinumElapsedDays]
       : 0;
 
-    const teamMembers = Math.min(orgHeadcount, MATRIX_MAX_POSITIONS);
+    // Team size itself is NOT capped at 32,765 — that ceiling applies only
+    // to Matrix Pay's own 14-level paying structure (see cappedVolume above).
+    // A Runner's actual downline (Team size, Team Volume, Coded Bonus) is
+    // legitimately unlimited-depth by design.
+    const teamMembers = orgHeadcount;
     const monthNum = Math.ceil(T / weeksPerMonth);
 
     months.push({
@@ -902,6 +909,24 @@ form.addEventListener('submit', function (e) {
         intlLine.textContent = `International Diamond qualified — ${fmtNum(pCount)} of 20 personally-enrolled Platinums`;
       } else {
         intlLine.textContent = `${fmtNum(pCount)} of 20 personally-enrolled Platinums needed for International Diamond`;
+      }
+
+      // Reminder note: only shown while short of the NEXT unmet mark (Diamond
+      // first, then Intl Diamond) — this count moves only by going in-depth
+      // with your own personally-enrolled reps to help them each reach
+      // Platinum themselves, not by growing total team/matrix size.
+      const noteRow = document.getElementById('teamworkNoteRow');
+      const noteEl = document.getElementById('teamworkNote');
+      if (pCount < 12) {
+        const needed = 12 - pCount;
+        noteEl.textContent = `Note: You need to work with your personal team to help ${fmtNum(needed)} more of your personally-enrolled reps reach Platinum to hit Diamond. A reminder — Team Work Makes the Dream Work!`;
+        noteRow.style.display = 'block';
+      } else if (pCount < 20) {
+        const needed = 20 - pCount;
+        noteEl.textContent = `Note: You need to work with your personal team to help ${fmtNum(needed)} more of your personally-enrolled reps reach Platinum to hit International Diamond. A reminder — Team Work Makes the Dream Work!`;
+        noteRow.style.display = 'block';
+      } else {
+        noteRow.style.display = 'none';
       }
     }
 
