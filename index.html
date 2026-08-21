@@ -420,7 +420,7 @@
 
     <div class="breakdown" id="weeklyProgressBox" style="margin-top:-8px;">
       <div class="breakdown-row" style="background:var(--paper-dim); font-weight:700;">
-        <span>Week-by-Week Progress</span><span></span>
+        <span>Month-by-Month Progress</span><span></span>
       </div>
       <div id="weeklyProgressContent"></div>
     </div>
@@ -631,43 +631,46 @@ function simulate({
   }
 
   const months = [];
+  const monthSummaries = [];
   let reached = false;
   let reachedMonth = null;
   let reachedWeek = null;
+  let monthAccum = 0; // this month's weekly-stream running total ONLY — zeroed at every month boundary, never carries to the next month
+  let currentMonthWeeks = [];
 
   // Week-by-week checking: evaluate EVERY week (not just 4-week month marks),
-  // using a rolling 4-week trailing window for "this month's" flow-based
-  // figures (new enrollments, new eligible-leg volume). Recurring/snapshot
-  // figures (Coded reorder volume, Matrix, Lifestyle GPV) are true point-in-
-  // time snapshots regardless of which week they're sampled at. This finds
-  // the EARLIEST week the goal is crossed, rather than only finding out
-  // after a full month has already passed and the number has grown further.
+  // so the earliest crossing point is found rather than only discovering it
+  // after a full month has already passed. Fast Start and Weekly Coded Bonus
+  // (Sections 1 & 2 — paid weekly) are computed as TRUE single-week amounts:
+  // only what happened in week T itself, not a trailing multi-week window.
+  // Matrix Pay, Monthly Coded Bonus, and Lifestyle Bonus (Sections 3-5 —
+  // paid monthly) remain true point-in-time snapshots AS OF week T, since
+  // they're recurring current-state figures, not accumulated flows.
   for (let T = 1; T <= maxT; T++) {
-    const Tprev = Math.max(0, T - weeksPerMonth);
-
     const personalEnrolled = Q[T];
     const runnerAutoship = runnerAutoshipAt(personalEnrolled);
     const rankLabel = codedBonusRankLabel(personalEnrolled);
     const rate = codedBonusRate(personalEnrolled);
 
-    // Fast Start Bonus: paid to the Runner on every product in THEIR OWN
-    // direct enrollment orders within the trailing 4-week window.
-    const newDirectThisWindow = Q[T] - Q[Tprev];
-    const monthFastStart = 20 * productsOnSignup * newDirectThisWindow;
+    // Weekly Fast Start Bonus (Section 1): paid on THIS WEEK'S OWN new
+    // direct enrollment orders only.
+    const newDirectThisWeek = Q[T] - Q[T - 1];
+    const weeklyFastStart = 20 * productsOnSignup * newDirectThisWeek;
 
-    // Weekly Coded Bonus: paid on NEW enrollment-order volume appearing
-    // within eligible (3rd+) legs during the trailing 4-week window.
-    const newEligibleHeadThisWindow = CodedEligibleHeadcount[T] - CodedEligibleHeadcount[Tprev];
-    const monthWeeklyCoded = rate * productsOnSignup * newEligibleHeadThisWindow;
+    // Weekly Coded Bonus (Section 2): paid on THIS WEEK'S OWN new
+    // enrollment-order volume appearing within eligible (3rd+) legs.
+    const newEligibleHeadThisWeek = CodedEligibleHeadcount[T] - CodedEligibleHeadcount[T - 1];
+    const weeklyCodedBonus = rate * productsOnSignup * newEligibleHeadThisWeek;
 
-    // Monthly Coded Bonus: current recurring autoship volume snapshot,
-    // flowing through eligible legs, AS OF this week.
-    const monthMonthlyCoded = rate * CodedEligibleVolume[T];
+    const weeklyIncome = weeklyFastStart + weeklyCodedBonus;
+    monthAccum += weeklyIncome;
 
-    const monthCoded = monthWeeklyCoded + monthMonthlyCoded;
+    // Monthly Coded Bonus (Section 4): current recurring reorder volume
+    // snapshot, flowing through eligible legs, AS OF this week.
+    const monthlyCodedBonus = rate * CodedEligibleVolume[T];
 
-    // Matrix Pay: Runner's own rate applied to current org-wide recurring
-    // volume snapshot, capped at the real matrix position ceiling.
+    // Matrix Pay (Section 3): Runner's own rate applied to current org-wide
+    // recurring volume snapshot, capped at the real matrix position ceiling.
     const access = matrixLevelAccess(runnerAutoship, personalEnrolled);
     const matrixRate = matrixRateForLevel(runnerAutoship);
     const orgHeadcount = G[T] - 1;
@@ -676,12 +679,16 @@ function simulate({
       : SV[T];
     const matrixPay = matrixRate * cappedVolume;
 
-    // Lifestyle Bonus: current GPV snapshot, AS OF this week.
+    // Lifestyle Bonus (Section 5): current GPV snapshot, AS OF this week.
     const teamVolumeCV = SV[T] * CV_PER_PRODUCT;
     const lifestyleQualified = runnerAutoship >= 3 && personalEnrolled >= 9;
     const lifestyleBonus = lifestyleQualified ? lifestyleBonusForGPV(teamVolumeCV) : 0;
 
-    const monthlyEarned = monthFastStart + monthCoded + matrixPay + lifestyleBonus;
+    // Estimated Monthly Income AS OF this week = this month's weekly-stream
+    // total SO FAR + the monthly-only streams' current run-rate snapshot.
+    // This is what's checked against the goal every week, and becomes the
+    // final month's ACTUAL total once a natural month-end is reached.
+    const monthlyEarned = monthAccum + matrixPay + monthlyCodedBonus + lifestyleBonus;
     const monthlyGoal = goalDollars;
     const weekReached = monthlyEarned >= monthlyGoal;
 
@@ -695,8 +702,9 @@ function simulate({
     // legitimately unlimited-depth by design.
     const teamMembers = orgHeadcount;
     const monthNum = Math.ceil(T / weeksPerMonth);
+    const isNaturalMonthEnd = (T % weeksPerMonth === 0);
 
-    months.push({
+    const weekEntry = {
       weekNum: T,
       monthNum,
       personalEnrolled,
@@ -704,16 +712,56 @@ function simulate({
       rank: rankLabel,
       teamMembers,
       teamVolume: teamVolumeCV,
-      monthFastStart,
-      monthCoded,
+      weeklyFastStart,
+      weeklyCodedBonus,
+      weeklyIncome,
       matrixPay,
+      monthlyCodedBonus,
       lifestyleBonus,
       monthlyEarned,
       monthlyGoal,
       reached: weekReached,
       platinumQualifiedPersonals,
       matrixLevels: access.levels,
-    });
+    };
+    months.push(weekEntry);
+    currentMonthWeeks.push(weekEntry);
+
+    const stopping = weekReached || T === maxT;
+
+    if (stopping) {
+      // Close out this month's summary NOW, whether it ended naturally
+      // (4 full weeks) or was cut short by hitting the goal / the hard cap
+      // mid-month — in which case it's labeled an ESTIMATE, since the
+      // remaining weeks of that month never actually ran.
+      monthSummaries.push({
+        monthNum,
+        weeks: currentMonthWeeks,
+        matrixPay,
+        monthlyCodedBonus,
+        lifestyleBonus,
+        weeklyStreamTotal: monthAccum,
+        monthTotal: monthlyEarned,
+        isEstimate: !isNaturalMonthEnd,
+        goalReachedHere: weekReached,
+      });
+    } else if (isNaturalMonthEnd) {
+      // Full 4 weeks completed with goal not yet hit — close out this month
+      // as an ACTUAL (non-estimated) total and start the next month at zero.
+      monthSummaries.push({
+        monthNum,
+        weeks: currentMonthWeeks,
+        matrixPay,
+        monthlyCodedBonus,
+        lifestyleBonus,
+        weeklyStreamTotal: monthAccum,
+        monthTotal: monthlyEarned,
+        isEstimate: false,
+        goalReachedHere: false,
+      });
+      monthAccum = 0;
+      currentMonthWeeks = [];
+    }
 
     if (weekReached && !reached) {
       reached = true;
@@ -728,7 +776,9 @@ function simulate({
     reachedMonth,
     reachedWeek,
     months,
+    monthSummaries,
     finalMonth: months[months.length - 1] || null,
+    finalMonthSummary: monthSummaries[monthSummaries.length - 1] || null,
   };
 }
 
@@ -834,11 +884,13 @@ form.addEventListener('submit', function (e) {
     adjustBox.style.display = 'none';
 
     const finalWeek = result.finalMonth;
+    const finalSummary = result.finalMonthSummary;
     const hitDate = result.reached ? weekDate(result.reachedWeek) : null;
 
     if (result.reached) {
       headlineEl.textContent = `Monthly goal reached — Week ${result.reachedWeek} (Month ${result.reachedMonth})`;
-      let sub = `By ${hitDate.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}, your earning rate at that point reached ${fmtMoney(finalWeek.monthlyEarned)}/month against a ${fmtMoney(goalDollars)}/month goal.`;
+      const totalPhrase = finalSummary.isEstimate ? 'your estimated monthly income at that point reached' : 'your Month End income reached';
+      let sub = `By ${hitDate.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}, ${totalPhrase} ${fmtMoney(finalSummary.monthTotal)}/month against a ${fmtMoney(goalDollars)}/month goal.`;
       if (goalDateVal) {
         const targetDate = new Date(goalDateVal + 'T00:00:00');
         const diffDays = Math.round((targetDate - hitDate) / 86400000);
@@ -852,7 +904,7 @@ form.addEventListener('submit', function (e) {
       subEl.textContent = sub;
     } else {
       headlineEl.textContent = `Monthly goal not reached within 6 months`;
-      subEl.textContent = `At this pace, the 6-month mark closed at ${fmtMoney(finalWeek.monthlyEarned)}/month against a ${fmtMoney(goalDollars)}/month goal. See adjustments below.`;
+      subEl.textContent = `At this pace, the 6-month mark closed at ${fmtMoney(finalSummary.monthTotal)}/month against a ${fmtMoney(goalDollars)}/month goal. See adjustments below.`;
       adjustBox.style.display = 'block';
       adjustList.innerHTML = `
         <li>Increase # new reps enrolled per week</li>
@@ -869,7 +921,7 @@ form.addEventListener('submit', function (e) {
 
     const methodNote = document.getElementById('methodNote');
     methodNote.style.display = 'block';
-    methodNote.textContent = `Modeled as pure duplication: every person you personally enroll follows your own exact recruiting pace and autoship upgrade rule, and so does everyone they enroll, at every level. Checked week by week, using each week's current earning rate.`;
+    methodNote.textContent = `Modeled as pure duplication: every person you personally enroll follows your own exact recruiting pace and autoship upgrade rule, and so does everyone they enroll, at every level. Fast Start and Weekly Coded Bonus are checked week by week as real single-week amounts; Matrix Pay, Monthly Coded Bonus, and Lifestyle Bonus are current monthly-rate snapshots layered on top at month end. Nothing carries over between months — each month starts at zero.`;
 
     const yourRankLine = document.getElementById('yourRankLine');
     if (finalWeek.rank) {
@@ -883,12 +935,18 @@ form.addEventListener('submit', function (e) {
     requiredAutoshipLine.innerHTML = `<strong>Your Required Autoship at Goal:</strong> ${finalWeek.runnerAutoship} ${autoshipWord}/month — to qualify for this income, you must remain on this autoship level every month. Missing a month's autoship order means missing that month's commissions.`;
 
     const bd = document.getElementById('breakdown');
+    const monthFastStartTotal = finalSummary.weeks.reduce((s, w) => s + w.weeklyFastStart, 0);
+    const monthWeeklyCodedTotal = finalSummary.weeks.reduce((s, w) => s + w.weeklyCodedBonus, 0);
+    const totalLabel = finalSummary.isEstimate ? 'Estimated Monthly Income' : 'Month End Income (Actual)';
     bd.innerHTML = `
-      <div class="breakdown-row"><span>Fast Start Bonus — this month</span><span class="amt">${fmtMoney(finalWeek.monthFastStart)}</span></div>
-      <div class="breakdown-row"><span>Coded Bonus (Weekly + Monthly) — this month</span><span class="amt">${fmtMoney(finalWeek.monthCoded)}</span></div>
-      <div class="breakdown-row"><span>Matrix Pay — this month</span><span class="amt">${fmtMoney(finalWeek.matrixPay)}</span></div>
-      <div class="breakdown-row"><span>Lifestyle Bonus — this month</span><span class="amt">${fmtMoney(finalWeek.lifestyleBonus)}</span></div>
-      <div class="breakdown-row"><span>Total Earned This Month</span><span class="amt">${fmtMoney(finalWeek.monthlyEarned)}</span></div>
+      <div class="breakdown-row" style="background:var(--paper-dim); font-weight:700;"><span>Weekly-Paid Streams — Month ${finalSummary.monthNum} total</span><span></span></div>
+      <div class="breakdown-row"><span>Fast Start Bonus (weekly)</span><span class="amt">${fmtMoney(monthFastStartTotal)}</span></div>
+      <div class="breakdown-row"><span>Coded Bonus — Weekly (new enrollments)</span><span class="amt">${fmtMoney(monthWeeklyCodedTotal)}</span></div>
+      <div class="breakdown-row" style="background:var(--paper-dim); font-weight:700;"><span>Monthly-Paid Streams — as of ${finalSummary.isEstimate ? 'this point in' : 'the end of'} Month ${finalSummary.monthNum}</span><span></span></div>
+      <div class="breakdown-row"><span>Matrix Pay</span><span class="amt">${fmtMoney(finalSummary.matrixPay)}</span></div>
+      <div class="breakdown-row"><span>Coded Bonus — Monthly (reorders)</span><span class="amt">${fmtMoney(finalSummary.monthlyCodedBonus)}</span></div>
+      <div class="breakdown-row"><span>Lifestyle Bonus</span><span class="amt">${fmtMoney(finalSummary.lifestyleBonus)}</span></div>
+      <div class="breakdown-row" style="font-weight:700; border-top:2px solid var(--ink);"><span>${totalLabel}</span><span class="amt">${fmtMoney(finalSummary.monthTotal)}</span></div>
     `;
 
     const platinumBox = document.getElementById('platinumBox');
@@ -930,22 +988,37 @@ form.addEventListener('submit', function (e) {
       }
     }
 
-    // Week-by-week progress table — shown for every simulated week, goal
-    // hit or not, so the trajectory (including the earliest crossing point) is visible.
+    // Month-by-Month Progress — each month groups its own weeks (true
+    // single-week Fast Start + Weekly Coded only) under a Month End (or
+    // Estimated, if the goal/hard-cap landed mid-month) total that layers
+    // in the monthly-only streams. Nothing carries over between months —
+    // each month's weekly total resets to zero at the start of the next.
     const progressContent = document.getElementById('weeklyProgressContent');
-    progressContent.innerHTML = result.months.map((wk) => {
-      const d = weekDate(wk.weekNum);
-      const dateStr = d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
-      const rankStr = wk.rank || 'Not yet ranked';
-      const rowClass = wk.reached ? 'reached' : 'not-reached';
-      const statusStr = wk.reached ? 'Goal Reached' : 'Not Yet';
+    progressContent.innerHTML = result.monthSummaries.map((ms, idx) => {
+      const isLast = idx === result.monthSummaries.length - 1;
+      const totalLabel = ms.isEstimate ? 'Estimated Monthly Income' : 'Month End Income';
+      const weekRows = ms.weeks.map((wk) => {
+        const d = weekDate(wk.weekNum);
+        const dateStr = d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+        const rankStr = wk.rank || 'Not yet ranked';
+        return `
+          <div class="month-row">
+            <span class="m-label">Week ${wk.weekNum}</span>
+            <span class="m-detail">${dateStr} — ${rankStr}, ${fmtNum(wk.personalEnrolled)} personal enrolled, team ${fmtNum(wk.teamMembers)}</span>
+            <span class="m-amt">Fast Start ${fmtMoney(wk.weeklyFastStart)} + Weekly Coded ${fmtMoney(wk.weeklyCodedBonus)} = ${fmtMoney(wk.weeklyIncome)}</span>
+          </div>
+        `;
+      }).join('');
       return `
-        <div class="month-row ${rowClass}">
-          <span class="m-label">Week ${wk.weekNum}</span>
-          <span class="m-detail">${dateStr} — ${rankStr}, ${fmtNum(wk.personalEnrolled)} personal enrolled, team ${fmtNum(wk.teamMembers)}</span>
-          <span class="m-amt">${fmtMoney(wk.monthlyEarned)} / ${fmtMoney(wk.monthlyGoal)}</span>
-          <span class="m-status">${statusStr}</span>
-        </div>
+        <details class="month-group" ${isLast ? 'open' : ''}>
+          <summary class="month-row ${ms.goalReachedHere ? 'reached' : 'not-reached'}" style="cursor:pointer;">
+            <span class="m-label">Month ${ms.monthNum}</span>
+            <span class="m-detail">Matrix ${fmtMoney(ms.matrixPay)} + Monthly Coded ${fmtMoney(ms.monthlyCodedBonus)} + Lifestyle ${fmtMoney(ms.lifestyleBonus)}${ms.isEstimate ? ' (mid-month snapshot)' : ''}</span>
+            <span class="m-amt">${totalLabel}: ${fmtMoney(ms.monthTotal)} / ${fmtMoney(goalDollars)}</span>
+            <span class="m-status">${ms.goalReachedHere ? 'Goal Reached' : (ms.isEstimate ? 'In Progress' : 'Not Yet')}</span>
+          </summary>
+          ${weekRows}
+        </details>
       `;
     }).join('');
 
