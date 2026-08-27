@@ -404,8 +404,6 @@
       <div class="breakdown-row"><span id="requiredAutoshipLine"></span></div>
     </div>
 
-    <div class="breakdown" id="breakdown"></div>
-
     <div class="breakdown" id="platinumBox" style="display:none; margin-top:-8px;">
       <div class="breakdown-row" style="background:var(--paper-dim); font-weight:700;">
         <span>Leadership Pipeline (Your Downline)</span><span></span>
@@ -420,10 +418,15 @@
 
     <div class="breakdown" id="weeklyProgressBox" style="margin-top:-8px;">
       <div class="breakdown-row" style="background:var(--paper-dim); font-weight:700;">
-        <span>Week-by-Week Progress</span><span></span>
+        <span>Week-by-Week Progress — Weekly-Paid Income Only</span><span></span>
+      </div>
+      <div class="breakdown-row" style="font-style:italic; font-size:0.85rem; color:var(--ink-dim);">
+        <span>Fast Start Bonus + Weekly Coded Bonus — the only two streams actually paid weekly. Matrix Pay, Monthly Coded Bonus, and Lifestyle Bonus are monthly streams shown separately below.</span>
       </div>
       <div id="weeklyProgressContent"></div>
     </div>
+
+    <div class="breakdown" id="breakdown"></div>
 
     <div class="adjust-box no-print" id="adjustBox" style="display:none;">
       <h3>Not there yet within 6 months — what to adjust</h3>
@@ -715,6 +718,7 @@ function simulate({
       weeklyFastStart,
       weeklyCodedBonus,
       weeklyIncome,
+      weeklyAccumSoFar: monthAccum, // running total of WEEKLY-PAID streams only, within this month
       matrixPay,
       monthlyCodedBonus,
       lifestyleBonus,
@@ -921,7 +925,7 @@ form.addEventListener('submit', function (e) {
 
     const methodNote = document.getElementById('methodNote');
     methodNote.style.display = 'block';
-    methodNote.textContent = `Modeled as pure duplication: every person you personally enroll follows your own exact recruiting pace and autoship upgrade rule, and so does everyone they enroll, at every level. Fast Start and Weekly Coded Bonus are checked week by week as real single-week amounts; Matrix Pay, Monthly Coded Bonus, and Lifestyle Bonus are current monthly-rate snapshots layered on top at month end. Nothing carries over between months — each month starts at zero.`;
+    methodNote.textContent = `Modeled as pure duplication: every person you personally enroll follows your own exact recruiting pace and autoship upgrade rule, and so does everyone they enroll, at every level. The Week-by-Week Progress table shows only Fast Start and Weekly Coded Bonus — the two streams actually paid weekly. Matrix Pay, Monthly Coded Bonus, and Lifestyle Bonus are monthly-only streams and appear separately in the Monthly Income Breakdown below, not blended into the weekly rows. Nothing carries over between months — each stream starts fresh at zero at the start of every month.`;
 
     const yourRankLine = document.getElementById('yourRankLine');
     if (finalWeek.rank) {
@@ -938,15 +942,16 @@ form.addEventListener('submit', function (e) {
     bd.innerHTML = result.monthSummaries.map((ms) => {
       const monthFastStartTotal = ms.weeks.reduce((s, w) => s + w.weeklyFastStart, 0);
       const monthWeeklyCodedTotal = ms.weeks.reduce((s, w) => s + w.weeklyCodedBonus, 0);
-      const monthCodedCombined = monthWeeklyCodedTotal + ms.monthlyCodedBonus;
       const totalLabel = ms.isEstimate ? `Estimated Monthly Income — Month ${ms.monthNum}` : `Total Earned — Month ${ms.monthNum}`;
+      const goalTag = ms.goalReachedHere ? ' — GOAL REACHED' : '';
       return `
         <div class="breakdown-row" style="background:var(--paper-dim); font-weight:700;"><span>Month ${ms.monthNum} Earnings Breakdown</span><span></span></div>
         <div class="breakdown-row"><span>Fast Start Bonus — Month ${ms.monthNum}</span><span class="amt">${fmtMoney(monthFastStartTotal)}</span></div>
-        <div class="breakdown-row"><span>Coded Bonus (Weekly + Monthly) — Month ${ms.monthNum}</span><span class="amt">${fmtMoney(monthCodedCombined)}</span></div>
+        <div class="breakdown-row"><span>Weekly Coded Bonus — Month ${ms.monthNum}</span><span class="amt">${fmtMoney(monthWeeklyCodedTotal)}</span></div>
+        <div class="breakdown-row"><span>Monthly Coded Bonus — Month ${ms.monthNum}</span><span class="amt">${fmtMoney(ms.monthlyCodedBonus)}</span></div>
         <div class="breakdown-row"><span>Matrix Pay — Month ${ms.monthNum}</span><span class="amt">${fmtMoney(ms.matrixPay)}</span></div>
         <div class="breakdown-row"><span>Lifestyle Bonus — Month ${ms.monthNum}</span><span class="amt">${fmtMoney(ms.lifestyleBonus)}</span></div>
-        <div class="breakdown-row" style="font-weight:700; border-top:2px solid var(--ink);"><span>${totalLabel}</span><span class="amt">${fmtMoney(ms.monthTotal)}</span></div>
+        <div class="breakdown-row" style="font-weight:700; border-top:2px solid var(--ink);"><span>${totalLabel}${goalTag}</span><span class="amt">${fmtMoney(ms.monthTotal)}</span></div>
       `;
     }).join('');
 
@@ -1000,19 +1005,16 @@ form.addEventListener('submit', function (e) {
         const d = weekDate(wk.weekNum);
         const dateStr = d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
         const rankStr = wk.rank || '—';
-        const rowClass = wk.reached ? 'reached' : 'not-reached';
-        const statusStr = wk.reached ? 'GOAL REACHED' : 'not yet';
         return `
-          <div class="month-row ${rowClass}">
+          <div class="month-row">
             <span class="m-label">Wk ${wk.weekNum}</span>
-            <span class="m-detail">${dateStr} — ${rankStr}, ${fmtNum(wk.personalEnrolled)} personal enrolled, team ${fmtNum(wk.teamMembers)}</span>
-            <span class="m-amt">${fmtMoney(wk.monthlyEarned)} / ${fmtMoney(wk.monthlyGoal)}</span>
-            <span class="m-status">${statusStr}</span>
+            <span class="m-detail">${dateStr} — ${rankStr}, ${fmtNum(wk.personalEnrolled)} personal enrolled, team ${fmtNum(wk.teamMembers)} &middot; Fast Start ${fmtMoney(wk.weeklyFastStart)} + Weekly Coded ${fmtMoney(wk.weeklyCodedBonus)}</span>
+            <span class="m-amt">${fmtMoney(wk.weeklyIncome)}</span>
           </div>
         `;
       }).join('');
 
-      const totalLabel = ms.isEstimate ? `Month ${ms.monthNum} Total (Estimated — goal reached mid-month)` : `Month ${ms.monthNum} Total Earned`;
+      const subtotalLabel = `Month ${ms.monthNum} Weekly-Stream Subtotal (Fast Start + Weekly Coded Bonus)`;
 
       return `
         <div class="breakdown-row" style="background:var(--paper-dim); font-weight:700;">
@@ -1020,7 +1022,7 @@ form.addEventListener('submit', function (e) {
         </div>
         ${weekRows}
         <div class="breakdown-row" style="font-weight:700; border-top:1px solid var(--ink);">
-          <span>${totalLabel}</span><span class="amt">${fmtMoney(ms.monthTotal)}</span>
+          <span>${subtotalLabel}</span><span class="amt">${fmtMoney(ms.weeklyStreamTotal)}</span>
         </div>
       `;
     }).join('');
