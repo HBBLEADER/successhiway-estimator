@@ -480,12 +480,14 @@ function runnerAutoshipAt(personalCount) {
 }
 
 // Coded Bonus per-product rate, gated by the RUNNER'S OWN rank (own
-// personal recruit count). $2 Silver / $4 Gold (stacked) / $6 Platinum
-// (stacked). Not yet ranked below 3 personal recruits.
+// personal recruit count). $3 Silver / $6 Gold (stacked) / $9 Platinum
+// (stacked) — rates updated Oct 2026 (previously $2/$4/$6). Applies to BOTH
+// the Weekly and Monthly Coded Bonus streams. Not yet ranked below 3
+// personal recruits.
 function codedBonusRate(personalCount) {
-  if (personalCount >= 9) return 6;
-  if (personalCount >= 5) return 4;
-  if (personalCount >= 3) return 2;
+  if (personalCount >= 9) return 9;
+  if (personalCount >= 5) return 6;
+  if (personalCount >= 3) return 3;
   return 0;
 }
 function codedBonusRankLabel(personalCount) {
