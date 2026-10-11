@@ -110,7 +110,8 @@
   }
   @media (max-width: 560px) { .field-grid { grid-template-columns: 1fr; } }
 
-  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+  .field input, .field select { width: 100%; max-width: 100%; }
   .field.span-2 { grid-column: 1 / -1; }
 
   .field label {
@@ -159,7 +160,8 @@
     font-family: var(--font-body);
     font-weight: 600;
     font-size: 0.9rem;
-    padding: 7px 14px;
+    padding: 10px 16px;
+    min-height: 44px;
     border-radius: 999px;
     border: 1.5px solid var(--line);
     background: var(--paper);
@@ -256,6 +258,20 @@
   .adjust-box ul { margin: 0; padding-left: 20px; }
   .adjust-box li { margin-bottom: 4px; }
 
+  /* Fold-away detail sections (keeps the results short on phones) */
+  details.more { margin-top: 10px; }
+  details.more > summary {
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--navy-700);
+    padding: 10px 0;
+    min-height: 44px;
+    list-style-position: inside;
+  }
+  .breakdown details.more { margin: 0; padding: 0 16px; border-bottom: 1px solid var(--line); }
+  .breakdown details.more[open] { padding-bottom: 0; }
+  .breakdown details.more > .inner { margin: 0 -16px; border-top: 1px solid var(--line); }
+
   .disclaimer {
     font-size: 0.78rem;
     color: var(--ink-dim);
@@ -302,6 +318,7 @@
     #goalForm { display: none !important; }
   }
 </style>
+</head>
 <body>
 
 <div class="hero">
@@ -387,7 +404,10 @@
     <div class="result-banner">
       <div class="headline" id="resultHeadline"></div>
       <div class="sub" id="resultSub"></div>
-      <div class="sub" id="methodNote" style="display:none; margin-top:6px; font-style:italic;"></div>
+      <details class="more" style="text-align:left;">
+        <summary>How this is calculated</summary>
+        <div class="sub" id="methodNote" style="font-style:italic;"></div>
+      </details>
     </div>
 
     <div class="stat-grid">
@@ -420,10 +440,15 @@
       <div class="breakdown-row" style="background:var(--paper-dim); font-weight:700;">
         <span>Week-by-Week Progress — Weekly-Paid Income Only</span><span></span>
       </div>
-      <div class="breakdown-row" style="font-style:italic; font-size:0.85rem; color:var(--ink-dim);">
-        <span>Fast Start Bonus + Weekly Coded Bonus — the only two streams actually paid weekly. Matrix Pay, Monthly Coded Bonus, and Lifestyle Bonus are monthly streams shown separately below.</span>
-      </div>
-      <div id="weeklyProgressContent"></div>
+      <details class="more" id="weeklyDetails">
+        <summary>Show each week</summary>
+        <div class="inner">
+          <div class="breakdown-row" style="font-style:italic; font-size:0.85rem; color:var(--ink-dim);">
+            <span>Fast Start Bonus + Weekly Coded Bonus — the only two streams actually paid weekly. Matrix Pay, Monthly Coded Bonus, and Lifestyle Bonus are monthly streams shown separately below.</span>
+          </div>
+          <div id="weeklyProgressContent"></div>
+        </div>
+      </details>
     </div>
 
     <div class="breakdown" id="breakdown"></div>
@@ -852,6 +877,16 @@ document.getElementById('clearBtn').addEventListener('click', () => {
   document.getElementById('adjustBox').style.display = 'none';
 
   document.getElementById('goalDollars').focus();
+});
+
+// Printed copies always include every folded-away section.
+let detailsOpenBeforePrint = [];
+window.addEventListener('beforeprint', () => {
+  detailsOpenBeforePrint = [...document.querySelectorAll('details.more')].map((d) => d.open);
+  document.querySelectorAll('details.more').forEach((d) => { d.open = true; });
+});
+window.addEventListener('afterprint', () => {
+  document.querySelectorAll('details.more').forEach((d, i) => { d.open = !!detailsOpenBeforePrint[i]; });
 });
 
 document.getElementById('printBtn').addEventListener('click', () => {
