@@ -4,6 +4,17 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Business Income Estimator Guide — GreatLife Worldwide</title>
+<script>
+  // Phones (600px wide or less) get the phone reading version, unless they asked for
+  // the printed pages with ?view=pages (the reader's "Page view" button).
+  (function () {
+    var pages = /[?&]view=pages\b/.test(location.search);
+    if (!pages && window.matchMedia && window.matchMedia("(max-width: 600px)").matches) {
+      location.replace("guide-reader.html" + location.hash);
+    }
+    if (pages) document.documentElement.className += " pages-view";
+  })();
+</script>
 <style>
   :root {
     --navy-900: #16233d;
@@ -62,6 +73,7 @@
   .topbar a.live-link:hover { background: var(--brass-light); }
   .viewer-wrap {
     height: 85vh;
+    height: calc(100dvh - 64px);
     width: 100%;
     background: var(--paper-dim);
   }
@@ -106,13 +118,26 @@
     transition: background 0.15s ease;
   }
   .bottom-cta a.live-link-big:hover { background: var(--brass-light); }
+  .topbar a.reader-link { display: none; }
+  .pages-view .topbar a.reader-link { display: inline-block; }
+  /* Phone: one-line bar so the PDF gets the screen */
+  @media (max-width: 600px) {
+    .topbar { padding: 8px 10px; gap: 6px; }
+    .topbar .brand { font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; flex: 1; }
+    .topbar .brand small { display: none; }
+    .topbar a.live-link { padding: 9px 10px; font-size: 0.8rem; }
+    .topbar a.live-link .long { display: none; }
+    .viewer-wrap { height: calc(100dvh - 54px); }
+  }
+  @media (min-width: 601px) { .topbar a.live-link .short { display: none; } }
 </style>
 </head>
 <body>
 
 <div class="topbar">
   <div class="brand">GreatLife Worldwide<small>Business Income Estimator — Sample Run &amp; Guide</small></div>
-  <a class="live-link" href="https://estimator.successhiway.com" target="_blank" rel="noopener">Open the Live Estimator &rarr;</a>
+  <a class="live-link reader-link" href="guide-reader.html">Reading view</a>
+  <a class="live-link" href="https://estimator.successhiway.com" target="_blank" rel="noopener"><span class="long">Open the Live Estimator &rarr;</span><span class="short">Estimator &rarr;</span></a>
 </div>
 
 <div class="viewer-wrap">
@@ -132,5 +157,10 @@
   <a class="live-link-big" href="https://estimator.successhiway.com" target="_blank" rel="noopener">Open the Live Estimator &rarr;</a>
 </div>
 
+<script>
+  // Phone Back can restore this page from the back/forward cache with the PDF viewer
+  // shut down (looks frozen) — reload it fresh instead.
+  window.addEventListener("pageshow", function (e) { if (e.persisted) location.reload(); });
+</script>
 </body>
 </html>

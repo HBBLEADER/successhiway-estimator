@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Business Income Estimator Guide — GreatLife Worldwide</title>
+<!--
+  Phone reading version of Business_Income_Estimator_Guide.pdf (rev 2.2).
+  Phones are sent here from guide.html; "Page view" goes back to the PDF (guide.html?view=pages).
+  MAINTENANCE: there is no Word source for the guide. If the PDF's text or Example Run
+  numbers change, make the same changes here so both versions match.
+-->
+<style>
+  :root {
+    --navy-900: #16233d;
+    --navy-800: #1f3357;
+    --navy-700: #2c4676;
+    --paper: #f6f4ef;
+    --paper-dim: #ece8de;
+    --brass: #b6862c;
+    --brass-light: #d9ab4e;
+    --green: #2e6b3a;
+    --ink: #23282f;
+    --ink-dim: #5c6570;
+    --line: #d8d2c2;
+    --font-display: "Roboto Slab", Georgia, serif;
+    --font-body: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --fs: 18px;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-body);
+    overflow-x: hidden;
+  }
+  body { font-size: var(--fs); line-height: 1.55; }
+
+  /* Fixed top bar */
+  .bar {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 20;
+    display: flex; align-items: center; gap: 6px;
+    padding: 8px 10px;
+    background: linear-gradient(160deg, var(--navy-900) 0%, var(--navy-800) 55%, var(--navy-700) 100%);
+    color: #fff;
+    font-size: 15px; line-height: 1.2;
+  }
+  .bar .title {
+    flex: 1; min-width: 0;
+    font-family: var(--font-display); font-weight: 700; font-size: 15px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .bar button, .bar a {
+    flex: none;
+    font: 600 14px/1 var(--font-body);
+    color: #fff; background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.28);
+    border-radius: 6px;
+    padding: 9px 10px; min-height: 38px;
+    text-decoration: none; cursor: pointer;
+    display: inline-flex; align-items: center;
+  }
+  .bar .gold { background: var(--brass); border-color: var(--brass); }
+  main { padding: 66px 16px 40px; max-width: 760px; margin: 0 auto; }
+
+  h1, h2, h3 { font-family: var(--font-display); color: var(--navy-800); line-height: 1.25; }
+  h2 {
+    font-size: 1.3em; margin: 1.8em 0 0.5em; padding-top: 0.2em;
+    scroll-margin-top: 62px;
+  }
+  h3 { font-size: 1.08em; margin: 1.3em 0 0.4em; scroll-margin-top: 62px; }
+  p { margin: 0 0 0.9em; }
+  a { color: var(--navy-700); }
+  .up { display: block; font-size: 0.8em; margin: -0.3em 0 0.8em; }
+  .up a { color: var(--brass); text-decoration: none; font-weight: 600; }
+
+  /* Cover */
+  .cover { text-align: center; padding: 14px 4px 6px; }
+  .cover .kicker { color: var(--brass); letter-spacing: 0.04em; font-weight: 600; font-size: 0.85em; }
+  .cover h1 { font-size: 1.7em; margin: 0.15em 0 0.1em; color: var(--navy-900); }
+  .cover .sub { color: var(--brass); font-size: 1em; margin-bottom: 0.8em; }
+  .cover .rule { height: 2px; width: 70%; margin: 0 auto 1em; background: var(--brass); }
+  .cover em { color: var(--ink-dim); display: block; margin-bottom: 0.9em; }
+  .try {
+    display: block; text-align: center; margin: 1em 0;
+    background: var(--brass); color: #fff; text-decoration: none; font-weight: 600;
+    padding: 13px 16px; border-radius: 8px;
+  }
+
+  /* Tip box + contents */
+  .tip {
+    background: #fff; border: 1px solid var(--line); border-left: 4px solid var(--brass);
+    border-radius: 8px; padding: 12px 14px; margin: 1.2em 0; font-size: 0.88em;
+  }
+  .tip p { margin: 0 0 0.5em; }
+  .tip button {
+    font: 600 15px var(--font-body); background: var(--navy-800); color: #fff;
+    border: 0; border-radius: 6px; padding: 9px 18px; cursor: pointer;
+  }
+  nav.toc {
+    background: #fff; border: 1px solid var(--line); border-radius: 8px;
+    padding: 6px 0; margin: 1em 0 0.5em;
+  }
+  nav.toc h2 { margin: 0.4em 14px 0.3em; font-size: 1.1em; }
+  nav.toc a {
+    display: block; padding: 11px 14px; border-top: 1px solid var(--paper-dim);
+    text-decoration: none; color: var(--navy-800); font-weight: 600; font-size: 0.95em;
+  }
+  nav.toc a.sub { padding-left: 30px; font-weight: 400; color: var(--ink); }
+
+  ol.streams { padding-left: 1.3em; }
+  ol.streams li { margin-bottom: 0.6em; }
+
+  /* Sample run */
+  .banner {
+    background: var(--navy-800); color: #fff; font-weight: 700;
+    border-radius: 6px; padding: 10px 12px; font-size: 0.9em;
+    margin: 2em 0 0.4em; scroll-margin-top: 62px;
+    font-family: var(--font-body);
+  }
+  .reached { color: var(--green); font-size: 1.15em; margin-top: 0.7em; }
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 0.9em 0; }
+  .stat { background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 8px 4px; text-align: center; }
+  .stat b { display: block; font-size: 1.35em; color: var(--navy-800); font-family: var(--font-display); }
+  .stat span { display: block; font-size: 0.62em; color: var(--ink-dim); letter-spacing: 0.03em; line-height: 1.25; }
+  .note { font-size: 0.82em; color: var(--ink-dim); }
+
+  .tablebox { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 0.6em 0 1em;
+    border: 1px solid var(--line); border-radius: 8px; background: #fff; }
+  table.weeks { border-collapse: collapse; width: 100%; font-size: 0.74em; }
+  table.weeks th { background: var(--navy-800); color: #fff; font-weight: 600; padding: 7px 5px; line-height: 1.2; }
+  table.weeks td { padding: 7px 5px; text-align: center; border-top: 1px solid var(--paper-dim); white-space: nowrap; }
+  table.weeks tr:nth-child(even) td { background: #f8f6f1; }
+  table.weeks td:last-child { font-weight: 700; color: var(--navy-800); }
+
+  .month { background: #fff; border: 1px solid var(--line); border-radius: 8px; margin: 0.6em 0 1em; overflow: hidden; }
+  .month h4 { margin: 0; padding: 9px 12px; background: var(--paper-dim); font-size: 0.95em; color: var(--navy-800); }
+  .month .row { display: flex; justify-content: space-between; gap: 10px; padding: 9px 12px; border-top: 1px solid var(--paper-dim); font-size: 0.9em; }
+  .month .row b { white-space: nowrap; color: var(--navy-800); }
+  .month .row small { display: block; color: var(--ink-dim); font-size: 0.82em; }
+  .month .total { background: #f3efe4; font-weight: 700; }
+  .month .total.goal b { color: var(--green); }
+
+  .inputs { font-size: 0.82em; color: var(--ink-dim); background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; }
+  .inputs ul { margin: 0.3em 0 0; padding-left: 1.2em; }
+  .takeaway { border-left: 4px solid var(--brass); padding: 4px 0 4px 12px; margin: 1em 0; }
+
+  .disclaim { background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; }
+  .end-cta { text-align: center; margin: 2.2em 0 1em; }
+  .end-cta h2 { margin-top: 0; }
+  footer { text-align: center; font-size: 0.75em; color: var(--ink-dim); padding: 12px 16px 30px; }
+</style>
+</head>
+<body>
+
+<div class="bar">
+  <span class="title">Estimator Guide</span>
+  <button type="button" id="smaller" aria-label="Smaller text">A−</button>
+  <button type="button" id="bigger" aria-label="Bigger text">A+</button>
+  <button type="button" id="contentsBtn">Contents</button>
+  <a href="guide.html?view=pages" id="pageView">Page view</a>
+</div>
+
+<main>
+
+<section class="cover" id="top">
+  <div class="kicker">GREATLIFE WORLDWIDE</div>
+  <h1>Business Income Estimator</h1>
+  <div class="sub">Sample Runs &amp; Guide</div>
+  <div class="rule"></div>
+  <em>A Recruiting &amp; Training Tool for New Prospective Distributors and for Existing Distributors to Better Understand and Visualize the Power of the GreatLife Worldwide Compensation Plan</em>
+  <em>Author: A 50+ Year Network Marketing Veteran</em>
+</section>
+<p class="note">This edition (rev 2.2) reflects the corrected weekly/monthly income split — the Week-by-Week Progress table shows only what's actually paid weekly (Fast Start + Weekly Coded Bonus), while Matrix Pay, Monthly Coded Bonus, and Lifestyle Bonus are shown separately in the Monthly Income Breakdown for each month.</p>
+<p>Read the guide, then take the Estimator for a test run yourself.</p>
+<a class="try" href="https://estimator.successhiway.com" target="_blank" rel="noopener">Try it live: estimator.successhiway.com &rarr;</a>
+
+<div class="tip" id="tip" hidden>
+  <p><b>Reading on your phone</b></p>
+  <p>Use <b>A−</b> / <b>A+</b> at the top to change the text size. <b>Contents</b> jumps back to this list. The tables slide sideways if they don't fit. <b>Page view</b> shows the original printed pages.</p>
+  <button type="button" id="tipDone">Got it</button>
+</div>
+
+<nav class="toc" id="contents" aria-label="Contents">
+  <h2>Contents</h2>
+  <a href="#how-to-use">How to Use This Guide</a>
+  <a class="sub" href="#weekly-vs-monthly">Weekly vs. Monthly: Why the Split Matters</a>
+  <a class="sub" href="#why-two-runs">Why Two Sample Runs?</a>
+  <a class="sub" href="#purpose">Purpose</a>
+  <a class="sub" href="#five-streams">The Five Income Streams Modeled</a>
+  <a href="#sample-run-1">Sample Run 1: The $1,000/Month Goal</a>
+  <a href="#sample-run-2">Sample Run 2: The $10,000/Month Goal</a>
+  <a class="sub" href="#leadership-pipeline">Leadership Pipeline — Sample Run 2</a>
+  <a href="#distributors-note">Distributor's Note</a>
+  <a href="#disclaimer">Disclaimer &amp; Purpose Statement</a>
+</nav>
+
+<h2 id="how-to-use">How to Use This Guide</h2>
+<span class="up"><a href="#contents">▲ Contents</a></span>
+<p>This guide walks through two complete sample runs of the GreatLife Worldwide Business Income Estimator — a free planning tool built for GreatLife distributors and their prospects. It shows exactly what a Runner enters, and exactly what the compensation plan pays back, week by week and month by month, based on those entries.</p>
+<p>The Estimator models a pure duplication business: every person the Runner personally enrolls goes on to recruit at that same weekly pace, and everyone's autoship auto-upgrades on the same schedule as the Runner's own (1 product → 2 products at 5 personal enrolled → 3 products at 9 personal enrolled). Nothing here is automatic or guaranteed; every result in these sample runs flows directly from the goal and the weekly recruiting pace entered.</p>
+
+<h3 id="weekly-vs-monthly">Weekly vs. Monthly: Why the Split Matters</h3>
+<p>GreatLife pays five income streams on two different schedules. <b>Fast Start Bonus</b> and <b>Weekly Coded Bonus</b> are paid weekly, on real enrollment activity that happened that week. <b>Matrix Pay</b>, <b>Monthly Coded Bonus</b>, and <b>Lifestyle Bonus</b> are paid monthly, based on current order/reorder volume. This guide keeps those two schedules visually separate — the Week-by-Week table only ever shows what's actually paid that week, and the Monthly Income Breakdown shows the monthly streams and the true month total, split out by month.</p>
+
+<h3 id="why-two-runs">Why Two Sample Runs?</h3>
+<p><b>Sample Run 1</b> sets a modest, believable monthly goal ($1,000) at a steady pace (3 new reps/week) — and shows how quickly even a conservative goal can be reached once a small team starts duplicating. <b>Sample Run 2</b> sets an ambitious goal ($10,000/month) at a much slower pace (just 1 new rep/week) — and shows that the compensation plan's unlimited-depth Coded Bonus can still get a Runner there surprisingly fast, because the whole downline is compounding at that same pace, not just the Runner alone.</p>
+
+<h3 id="purpose">Purpose</h3>
+<p>To help people picture, in concrete numbers, what consistent weekly effort in this business can realistically produce — and to help a sponsor guide a new distributor toward a goal that's neither too small nor too large.</p>
+<p><b>Ultimate goal: to help people achieve great health and wealth.</b></p>
+
+<h3 id="five-streams">The Five Income Streams Modeled</h3>
+<ol class="streams">
+  <li><b>Fast Start Bonus</b> (weekly) — $20/product paid to the enroller on direct-enrollment orders.</li>
+  <li><b>Weekly Coded Bonus</b> (weekly) — enrollment-triggered, unlimited depth, starts at the Runner's 3rd personal enrollment (Silver).</li>
+  <li><b>Monthly Coded Bonus</b> (monthly) — order/reorder-triggered, unlimited depth.</li>
+  <li><b>Matrix Pay</b> (monthly) — 2x14 matrix, dual-gated by the Runner's own autoship level and personal sponsor count. Levels 1–7 require only 1-product autoship — no personal enrollment minimum.</li>
+  <li><b>Lifestyle Bonus</b> (monthly) — GPV-tiered bonus, requires Platinum rank + qualifying volume.</li>
+</ol>
+<p class="note">Not modeled: Retail Commissions, One-Time Achievement Bonuses, spillover, or the $14.95 Affiliate tier.</p>
+
+<!-- ======================= SAMPLE RUN 1 ======================= -->
+<div class="banner" id="sample-run-1">SAMPLE RUN — Sample Run 1: The $1,000/Month Goal</div>
+<span class="up"><a href="#contents">▲ Contents</a></span>
+<h3 class="reached">Goal Reached — Week 3 (Month 1)</h3>
+<p>That month's total income — combining weekly-paid streams with the Matrix Pay, Monthly Coded Bonus, and Lifestyle Bonus current run-rate — reached <b>$1,199</b> against a <b>$1,000/month</b> goal.</p>
+<div class="stats">
+  <div class="stat"><b>9</b><span>PERSONAL REPS</span></div>
+  <div class="stat"><b>63</b><span>TOTAL TEAM</span></div>
+  <div class="stat"><b>3,105</b><span>TEAM VOLUME (CV)</span></div>
+</div>
+<p><b>Rank Achieved:</b> Platinum — 9 personally enrolled, on 3-product autoship (pays through Matrix Level 14).</p>
+
+<h3>Week-by-Week Progress — Weekly-Paid Income Only</h3>
+<p class="note">Fast Start Bonus and Weekly Coded Bonus are the only two streams actually paid on a weekly basis, shown for every week of the run. Matrix Pay, Monthly Coded Bonus, and Lifestyle Bonus are monthly streams — see the Monthly Income Breakdown below, not blended into these weekly figures.</p>
+<div class="tablebox">
+<table class="weeks">
+  <thead><tr><th>Week</th><th>Personal Enrolled</th><th>Rank</th><th>Team Members</th><th>Fast Start This Wk</th><th>Weekly Coded This Wk</th><th>Total This Wk</th></tr></thead>
+  <tbody>
+    <tr><td>Wk 1</td><td>3</td><td>Silver</td><td>3</td><td>$60</td><td>$3</td><td>$63</td></tr>
+    <tr><td>Wk 2</td><td>6</td><td>Gold</td><td>15</td><td>$60</td><td>$36</td><td>$96</td></tr>
+    <tr><td>Wk 3</td><td>9</td><td>Platinum</td><td>63</td><td>$60</td><td>$216</td><td>$276</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h3>Monthly Income Breakdown — All Months</h3>
+<div class="month">
+  <h4>Month 1</h4>
+  <div class="row"><span>Fast Start Bonus <small>weekly-paid</small></span><b>$180</b></div>
+  <div class="row"><span>Weekly Coded Bonus <small>weekly-paid</small></span><b>$255</b></div>
+  <div class="row"><span>Monthly Coded Bonus <small>monthly-paid</small></span><b>$288</b></div>
+  <div class="row"><span>Matrix Pay <small>monthly-paid</small></span><b>$276</b></div>
+  <div class="row"><span>Lifestyle Bonus <small>monthly-paid</small></span><b>$200</b></div>
+  <div class="row total goal"><span>Estimated Monthly Income — GOAL REACHED</span><b>$1,199</b></div>
+</div>
+
+<div class="inputs"><b>Inputs Used for This Run:</b>
+  <ul>
+    <li>Monthly Income Goal <b>$1,000</b></li>
+    <li>New Reps Enrolled Per Week <b>3</b></li>
+    <li>Products Per Enrollment Order <b>1</b> (Silver order)</li>
+    <li>Runner's Own Autoship: Auto-upgrades 1 product → 2 at 5 personal enrolled → 3 at 9 personal enrolled.</li>
+  </ul>
+</div>
+<p class="takeaway"><b>Takeaway:</b> Even a modest, believable income goal is well within reach fast once a Runner recruits consistently and their team duplicates that same pace. This is the number to point a brand-new distributor toward as a first, confidence-building milestone.</p>
+
+<!-- ======================= SAMPLE RUN 2 ======================= -->
+<div class="banner" id="sample-run-2">SAMPLE RUN — Sample Run 2: The $10,000/Month Goal</div>
+<span class="up"><a href="#contents">▲ Contents</a></span>
+<h3 class="reached">Goal Reached — Week 11 (Month 3)</h3>
+<p>That month's total income — combining weekly-paid streams with the Matrix Pay, Monthly Coded Bonus, and Lifestyle Bonus current run-rate — reached <b>$18,290</b> against a <b>$10,000/month</b> goal.</p>
+<div class="stats">
+  <div class="stat"><b>11</b><span>PERSONAL REPS</span></div>
+  <div class="stat"><b>2,047</b><span>TOTAL TEAM</span></div>
+  <div class="stat"><b>95,220</b><span>TEAM VOLUME (CV)</span></div>
+</div>
+<p><b>Rank Achieved:</b> Platinum — 11 personally enrolled, on 3-product autoship (pays through Matrix Level 14).</p>
+
+<h3>Week-by-Week Progress — Weekly-Paid Income Only</h3>
+<p class="note">Fast Start Bonus and Weekly Coded Bonus are the only two streams actually paid on a weekly basis, shown for every week of the run. Matrix Pay, Monthly Coded Bonus, and Lifestyle Bonus are monthly streams — see the Monthly Income Breakdown below, not blended into these weekly figures.</p>
+<div class="tablebox">
+<table class="weeks">
+  <thead><tr><th>Week</th><th>Personal Enrolled</th><th>Rank</th><th>Team Members</th><th>Fast Start This Wk</th><th>Weekly Coded This Wk</th><th>Total This Wk</th></tr></thead>
+  <tbody>
+    <tr><td>Wk 1</td><td>1</td><td>—</td><td>1</td><td>$20</td><td>$0</td><td>$20</td></tr>
+    <tr><td>Wk 2</td><td>2</td><td>—</td><td>3</td><td>$20</td><td>$0</td><td>$20</td></tr>
+    <tr><td>Wk 3</td><td>3</td><td>Silver</td><td>7</td><td>$20</td><td>$3</td><td>$23</td></tr>
+    <tr><td>Wk 4</td><td>4</td><td>Silver</td><td>15</td><td>$20</td><td>$6</td><td>$26</td></tr>
+    <tr><td>Wk 5</td><td>5</td><td>Gold</td><td>31</td><td>$20</td><td>$24</td><td>$44</td></tr>
+    <tr><td>Wk 6</td><td>6</td><td>Gold</td><td>63</td><td>$20</td><td>$48</td><td>$68</td></tr>
+    <tr><td>Wk 7</td><td>7</td><td>Gold</td><td>127</td><td>$20</td><td>$96</td><td>$116</td></tr>
+    <tr><td>Wk 8</td><td>8</td><td>Gold</td><td>255</td><td>$20</td><td>$192</td><td>$212</td></tr>
+    <tr><td>Wk 9</td><td>9</td><td>Platinum</td><td>511</td><td>$20</td><td>$576</td><td>$596</td></tr>
+    <tr><td>Wk 10</td><td>10</td><td>Platinum</td><td>1,023</td><td>$20</td><td>$1,152</td><td>$1,172</td></tr>
+    <tr><td>Wk 11</td><td>11</td><td>Platinum</td><td>2,047</td><td>$20</td><td>$2,304</td><td>$2,324</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h3>Monthly Income Breakdown — All Months</h3>
+<div class="month">
+  <h4>Month 1</h4>
+  <div class="row"><span>Fast Start Bonus <small>weekly-paid</small></span><b>$80</b></div>
+  <div class="row"><span>Weekly Coded Bonus <small>weekly-paid</small></span><b>$9</b></div>
+  <div class="row"><span>Monthly Coded Bonus <small>monthly-paid</small></span><b>$9</b></div>
+  <div class="row"><span>Matrix Pay <small>monthly-paid</small></span><b>$16</b></div>
+  <div class="row"><span>Lifestyle Bonus <small>monthly-paid</small></span><b>$0</b></div>
+  <div class="row total"><span>Total Earned This Month</span><b>$114</b></div>
+</div>
+<div class="month">
+  <h4>Month 2</h4>
+  <div class="row"><span>Fast Start Bonus <small>weekly-paid</small></span><b>$80</b></div>
+  <div class="row"><span>Weekly Coded Bonus <small>weekly-paid</small></span><b>$360</b></div>
+  <div class="row"><span>Monthly Coded Bonus <small>monthly-paid</small></span><b>$384</b></div>
+  <div class="row"><span>Matrix Pay <small>monthly-paid</small></span><b>$528</b></div>
+  <div class="row"><span>Lifestyle Bonus <small>monthly-paid</small></span><b>$0</b></div>
+  <div class="row total"><span>Total Earned This Month</span><b>$1,352</b></div>
+</div>
+<div class="month">
+  <h4>Month 3</h4>
+  <div class="row"><span>Fast Start Bonus <small>weekly-paid</small></span><b>$60</b></div>
+  <div class="row"><span>Weekly Coded Bonus <small>weekly-paid</small></span><b>$4,032</b></div>
+  <div class="row"><span>Monthly Coded Bonus <small>monthly-paid</small></span><b>$4,734</b></div>
+  <div class="row"><span>Matrix Pay <small>monthly-paid</small></span><b>$8,464</b></div>
+  <div class="row"><span>Lifestyle Bonus <small>monthly-paid</small></span><b>$1,000</b></div>
+  <div class="row total goal"><span>Estimated Monthly Income — GOAL REACHED</span><b>$18,290</b></div>
+</div>
+
+<div class="inputs"><b>Inputs Used for This Run:</b>
+  <ul>
+    <li>Monthly Income Goal <b>$10,000</b></li>
+    <li>New Reps Enrolled Per Week <b>1</b></li>
+    <li>Products Per Enrollment Order <b>1</b> (Silver order)</li>
+    <li>Runner's Own Autoship: Auto-upgrades 1 product → 2 at 5 personal enrolled → 3 at 9 personal enrolled.</li>
+  </ul>
+</div>
+<p class="takeaway"><b>Takeaway:</b> Even at a slow, easy-to-sustain pace of just 1 new rep enrolled per week, GreatLife's unlimited-depth Coded Bonus and Matrix Pay compound quickly through a duplicating downline. This is real, and it has been achieved by real GreatLife distributors — it is not an exaggerated or cherry-picked result.</p>
+
+<h3 id="leadership-pipeline">Leadership Pipeline — Sample Run 2</h3>
+<p>Diamond and International Diamond ranks require a pipeline of personally-enrolled distributors who themselves reach Platinum rank (9+ of their own personal recruits). This section shows where Sample Run 2's Runner stood on that pipeline at the week the $10,000/month goal was reached.</p>
+<div class="month">
+  <div class="row"><span>Personally-Enrolled Reps Now Platinum-Qualified</span><b>2</b></div>
+  <div class="row"><span>Needed for Diamond (12 qualified Platinums)</span><b>2 of 12</b></div>
+  <div class="row"><span>Needed for International Diamond (20 qualified Platinums)</span><b>2 of 20</b></div>
+</div>
+
+<!-- ======================= CLOSING ======================= -->
+<h2 id="distributors-note">Distributor's Note</h2>
+<span class="up"><a href="#contents">▲ Contents</a></span>
+<p>Best I have seen in my 50+ years in the industry. This tool is designed to help prospects and team members picture the potential and power of the GreatLife Worldwide compensation plan — in a class all by itself. The Estimator's Run button can be cleared and reset to zero for another run, with guidance from the sponsor or recruiter, allowing a goal to be resized if it was set too large or too small.</p>
+
+<h2 id="disclaimer">Disclaimer &amp; Purpose Statement</h2>
+<span class="up"><a href="#contents">▲ Contents</a></span>
+<div class="disclaim">
+<p><b>This is a projection tool, not an income guarantee.</b></p>
+<p>The Week-by-Week Progress table in this guide shows only what's actually paid on a weekly basis — Fast Start Bonus and Weekly Coded Bonus. Matrix Pay, Monthly Coded Bonus, and Lifestyle Bonus are monthly streams, evaluated as a current run-rate snapshot and shown in the Monthly Income Breakdown for each month, not blended into the weekly figures. This projection runs a maximum of 6 months (a 3-month soft target, 6-month hard stop). That limit is intentional: Coded Bonus pays to infinite depth with no generational limit, so its growth compounds very quickly as a team builds — a real, accurate feature of the compensation plan, not a flaw in this tool. Capping the projection keeps the numbers meaningful and avoids projecting so far out that the math stops being a realistic reflection of early team-building activity.</p>
+<p>This tool models a pure duplication business: every person the Runner personally enrolls goes on to recruit new people at that Runner's own entered weekly pace, indefinitely, and everyone's autoship auto-upgrades on the same 1→2→3 product schedule as the Runner's own. There is no manually-entered "Leaders" count and no percentage-mix of behavior groups — every enrollee is assumed to build exactly like the Runner does.</p>
+<p>Real teams vary widely based on individual effort. This tool models only the Runner's own personal activity and the activity of their personally-enrolled downline duplicating that same activity — it does not model spillover volume from upline sponsoring efforts anywhere, including Matrix Pay, since company-wide spillover can't be predicted for an individual projection.</p>
+<p>No income claims or guarantees are made or implied. Please refer to the official GreatLife Compensation Plan for complete details.</p>
+<p class="note">Income Estimator Calculator — an independent tool built for GreatLife Worldwide distributors and their prospects.</p>
+</div>
+
+<div class="end-cta">
+  <h2>Ready to Run Your Own Numbers?</h2>
+  <p>Try the live Business Income Estimator — free, no signup required.</p>
+  <a class="try" href="https://estimator.successhiway.com" target="_blank" rel="noopener">Open the Live Estimator &rarr;</a>
+</div>
+</main>
+
+<footer>GreatLife Worldwide — Business Income Estimator Guide</footer>
+
+<script>
+(function () {
+  var root = document.documentElement;
+  var MIN = 15, MAX = 28, KEY = "glGuideFontSize", TIPKEY = "glGuideTipDone";
+  function get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+
+  var size = parseInt(get(KEY), 10);
+  if (!(size >= MIN && size <= MAX)) size = 18;
+  function apply() { root.style.setProperty("--fs", size + "px"); }
+  apply();
+  document.getElementById("smaller").onclick = function () { if (size > MIN) { size--; apply(); set(KEY, size); } };
+  document.getElementById("bigger").onclick = function () { if (size < MAX) { size++; apply(); set(KEY, size); } };
+
+  // Instant jump to Contents (page is short, but keep it snappy and predictable)
+  document.getElementById("contentsBtn").onclick = function () {
+    var c = document.getElementById("contents");
+    window.scrollTo(0, c.getBoundingClientRect().top + window.pageYOffset - 62);
+  };
+
+  var tip = document.getElementById("tip");
+  if (!get(TIPKEY)) tip.hidden = false;
+  document.getElementById("tipDone").onclick = function () { tip.hidden = true; set(TIPKEY, "1"); };
+})();
+</script>
+</body>
+</html>
